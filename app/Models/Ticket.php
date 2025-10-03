@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
@@ -21,6 +22,16 @@ class Ticket extends Model
     public const STATUS_READY = 'ready';
     public const STATUS_DELIVERED = 'delivered';
     public const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Get all activities for the ticket.
+     */
+    public function activities(): HasMany
+    {
+        return $this->hasMany(\App\Models\Activity::class, 'subject_id')
+            ->where('subject_type', self::class)
+            ->latest();
+    }
 
     /**
      * The attributes that are mass assignable.

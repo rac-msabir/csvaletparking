@@ -17,7 +17,21 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $tenantId = Auth::user()->tenant_id;
+        $user = Auth::user();
+        $tenantId = $user->tenant_id;
+        
+        // Ensure the user has a personal team
+        if (!$user->currentTeam) {
+            // Create a personal team for the tenant admin if they don't have one
+            $team = $user->ownedTeams()->create([
+                'user_id' => $user->id,
+                'name' => $user->name . "'s Team",
+                'personal_team' => true,
+            ]);
+            
+            // Switch to the new team
+            $user->switchTeam($team);
+        }
         
         $stats = [
             'active_tickets' => Ticket::where('tenant_id', $tenantId)
@@ -31,6 +45,10 @@ class DashboardController extends Controller
 
         return Inertia::render('Tenant/Dashboard', [
             'stats' => $stats,
+            'can' => [
+                'createTeam' => true,
+                'manageTeam' => true,
+            ],
         ]);
     }
 
@@ -43,9 +61,9 @@ class DashboardController extends Controller
     private function getAverageResponseTime($tenantId)
     {
         $averageMinutes = Ticket::where('tenant_id', $tenantId)
-            ->whereNotNull('first_response_at')
+            ->whereNotNull('check_in_at')
             ->whereNotNull('created_at')
-            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, first_response_at)) as avg_response_time')
+            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, check_in_at)) as avg_response_time')
             ->value('avg_response_time');
 
         if (!$averageMinutes) {
@@ -57,7 +75,7 @@ class DashboardController extends Controller
         }
 
         $hours = floor($averageMinutes / 60);
-        $minutes = $averageMinutes % 60;
+        $minutes = round($averageMinutes % 60);
         
         return $hours . 'h ' . $minutes . 'm';
     }

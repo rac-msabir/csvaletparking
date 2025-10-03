@@ -52,8 +52,19 @@ Route::middleware(['auth'])->group(function () {
         ->name('tenant.')
         ->middleware('can:tenant-admin')
         ->group(function () {
+            // Dashboard
             Route::get('/dashboard', [TenantDashboardController::class, 'index'])
                 ->name('dashboard');
+                
+            // Tickets Resource
+            Route::resource('tickets', \App\Http\Controllers\Tenant\TicketController::class)
+                ->names('tenant.tickets');
+                
+            // Additional ticket routes
+            Route::prefix('tickets')->group(function () {
+                Route::post('{ticket}/status', [\App\Http\Controllers\Tenant\TicketController::class, 'updateStatus'])
+                    ->name('tickets.status.update');
+            });
         });
 
     // Employee Routes
