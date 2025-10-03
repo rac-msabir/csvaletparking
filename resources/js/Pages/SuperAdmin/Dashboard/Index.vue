@@ -1,9 +1,17 @@
 <template>
   <SuperAdminLayout title="Dashboard">
     <div class="bg-white shadow">
-      <div class="px-4 py-5 sm:px-6">
-        <h3 class="text-lg leading-6 font-medium text-gray-900">Tenant Organizations</h3>
-        <p class="mt-1 text-sm text-gray-500">A list of all tenant organizations in the system.</p>
+      <div class="px-4 py-5 sm:px-6 flex justify-between items-center">
+        <div>
+          <h3 class="text-lg leading-6 font-medium text-gray-900">Tenant Organizations</h3>
+          <p class="mt-1 text-sm text-gray-500">A list of all tenant organizations in the system.</p>
+        </div>
+        <Link 
+          :href="route('super-admin.tenants.create')"
+          class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          Add New Tenant
+        </Link>
       </div>
       
       <div class="bg-white shadow overflow-hidden sm:rounded-md">
@@ -35,18 +43,18 @@
                   </span>
                 </div>
                 <div class="ml-4 flex-shrink-0">
-                  <button 
-                    @click="viewTenant(tenant.id)"
+                  <Link 
+                    :href="route('super-admin.tenants.show', tenant.id)"
                     class="font-medium text-indigo-600 hover:text-indigo-900 mr-4"
                   >
                     View
-                  </button>
-                  <button 
-                    @click="editTenant(tenant.id)"
+                  </Link>
+                  <Link 
+                    :href="route('super-admin.tenants.edit', { tenant: tenant.id })"
                     class="font-medium text-indigo-600 hover:text-indigo-900"
                   >
                     Edit
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>
@@ -125,7 +133,7 @@
 
 <script>
 import { defineComponent } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import SuperAdminLayout from '@/Layouts/SuperAdminLayout.vue';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 
@@ -141,7 +149,6 @@ export default defineComponent({
   props: {
     tenants: Object,
   },
-
   setup() {
     const formatDate = (dateString) => {
       const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -149,23 +156,22 @@ export default defineComponent({
     };
 
     const viewTenant = (id) => {
-      // Implement view tenant functionality
-      console.log('View tenant:', id);
+      window.location.href = route('super-admin.tenants.show', id);
     };
 
     const editTenant = (id) => {
-      // Implement edit tenant functionality
-      console.log('Edit tenant:', id);
+      window.location.href = `/super-admin/tenants/${id}/edit`;
     };
 
     const goToPage = (url) => {
       if (!url) return;
       const page = url.split('page=')[1];
-      window.location.href = `${window.location.pathname}?page=${page}`;
+      router.visit(`${window.location.pathname}?page=${page}`);
     };
 
     const previousPage = () => {
       if (this.tenants.prev_page_url) {
+        router.visit(this.tenants.prev_page_url);
         window.location.href = this.tenants.prev_page_url;
       }
     };
@@ -187,3 +193,4 @@ export default defineComponent({
   },
 });
 </script>
+

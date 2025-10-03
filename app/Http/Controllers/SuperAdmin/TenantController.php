@@ -43,12 +43,6 @@ class TenantController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'domain' => [
-                'required',
-                'string',
-                'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
-                Rule::unique('tenants', 'domain'),
-            ],
             'email' => [
                 'required',
                 'email',
@@ -72,8 +66,29 @@ class TenantController extends Controller
             ->with('success', 'Tenant created successfully');
     }
 
-    public function edit(Tenant $tenant)
+    public function show($id)
     {
+        $tenant = Tenant::findOrFail($id);
+        return Inertia::render('SuperAdmin/Tenants/View', [
+            'tenant' => [
+                'id' => $tenant->id,
+                'name' => $tenant->name,
+                'domain' => $tenant->domain,
+                'email' => $tenant->email,
+                'phone' => $tenant->phone,
+                'address' => $tenant->address,
+                'is_active' => $tenant->is_active,
+                'created_at' => $tenant->created_at->format('Y-m-d\TH:i:s'),
+                'updated_at' => $tenant->updated_at->format('Y-m-d\TH:i:s'),
+            ],
+            'appDomain' => config('app.domain', 'example.com'),
+        ]);
+    }
+
+    public function edit($id)
+    {
+        // dd($id);
+        $tenant = Tenant::findOrFail($id);
         return Inertia::render('SuperAdmin/Tenants/Edit', [
             'tenant' => [
                 'id' => $tenant->id,
@@ -84,13 +99,15 @@ class TenantController extends Controller
                 'address' => $tenant->address,
                 'is_active' => $tenant->is_active,
                 'created_at' => $tenant->created_at->format('Y-m-d\TH:i:s'),
+                'updated_at' => $tenant->updated_at->format('Y-m-d\TH:i:s'),
             ],
             'appDomain' => config('app.domain', 'example.com'),
         ]);
     }
-
-    public function update(Request $request, Tenant $tenant)
+    public function update(Request $request, $id)
     {
+        $tenant = Tenant::findOrFail($id);
+        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -107,7 +124,7 @@ class TenantController extends Controller
 
         $tenant->update($validated);
 
-        return back()->with('success', 'Tenant updated successfully');
+        return redirect()->route('super-admin.tenants.index')->with('success', 'Tenant updated successfully');
     }
 
     public function destroy(Tenant $tenant)
@@ -127,17 +144,16 @@ class TenantController extends Controller
             ->with('success', 'Tenant deleted successfully');
     }
 
-    public function toggleStatus(Tenant $tenant)
+    public function toggleStatus($id)
     {
+        $tenant = Tenant::findOrFail($id);
+        
         $tenant->update([
             'is_active' => !$tenant->is_active
         ]);
 
         $status = $tenant->is_active ? 'activated' : 'deactivated';
         
-        return response()->json([
-            'message' => "Tenant {$status} successfully",
-            'is_active' => $tenant->is_active
-        ]);
+        return redirect()->route('super-admin.tenants.index')->with('success', "Tenant {$status} successfully");
     }
 }

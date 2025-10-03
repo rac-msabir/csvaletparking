@@ -10,11 +10,12 @@
         </div>
         
         <div class="mt-5 md:mt-0 md:col-span-2">
-          <form @submit.prevent="submit">
+            <form @submit.prevent="submit" method="POST">
             <div class="shadow sm:rounded-md sm:overflow-hidden">
               <div class="px-4 py-5 bg-white space-y-6 sm:p-6">
                 <div class="grid grid-cols-6 gap-6">
                   <div class="col-span-6 sm:col-span-4">
+                    <input type="hidden" name="_token" :value="$page.props.csrf_token">
                     <label for="name" class="block text-sm font-medium text-gray-700">Organization Name</label>
                     <input
                       v-model="form.name"
@@ -142,7 +143,7 @@
 
 <script>
 import SuperAdminLayout from '@/Layouts/SuperAdminLayout.vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 
 export default {
   components: {
@@ -172,13 +173,14 @@ export default {
         onSuccess: () => {
           // Handle success (e.g., show notification)
         },
+        preserveScroll: true,
       });
     };
 
     // Domain cannot be changed after creation
     const canEditDomain = false;
 
-    return { form, submit, canEditDomain };
+    return { form, submit, canEditDomain, Link };
   },
 };
 </script>

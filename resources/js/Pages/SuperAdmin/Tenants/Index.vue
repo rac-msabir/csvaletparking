@@ -1,5 +1,95 @@
 <template>
   <SuperAdminLayout title="Tenant Management">
+    <!-- Toast Notifications -->
+    <div class="fixed bottom-4 right-4 z-50 space-y-4">
+      <!-- Success Toast -->
+      <transition
+        enter-active-class="transform ease-out duration-300 transition"
+        enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+        enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+        leave-active-class="transition ease-in duration-100"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div 
+          v-if="showSuccess" 
+          class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+        >
+          <div class="p-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="ml-3 w-0 flex-1 pt-0.5">
+                <p class="text-sm font-medium text-gray-900">
+                  Success
+                </p>
+                <p class="mt-1 text-sm text-gray-500">
+                  {{ $page.props.flash.success }}
+                </p>
+              </div>
+              <div class="ml-4 flex-shrink-0 flex">
+                <button 
+                  @click="showSuccess = false"
+                  class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <span class="sr-only">Close</span>
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+
+      <!-- Error Toast -->
+      <transition
+        enter-active-class="transform ease-out duration-300 transition"
+        enter-from-class="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2"
+        enter-to-class="translate-y-0 opacity-100 sm:translate-x-0"
+        leave-active-class="transition ease-in duration-100"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div 
+          v-if="showError" 
+          class="max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+        >
+          <div class="p-4">
+            <div class="flex items-start">
+              <div class="flex-shrink-0">
+                <svg class="h-6 w-6 text-red-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div class="ml-3 w-0 flex-1 pt-0.5">
+                <p class="text-sm font-medium text-gray-900">
+                  Error
+                </p>
+                <p class="mt-1 text-sm text-gray-500">
+                  {{ $page.props.flash.error }}
+                </p>
+              </div>
+              <div class="ml-4 flex-shrink-0 flex">
+                <button 
+                  @click="showError = false"
+                  class="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <span class="sr-only">Close</span>
+                  <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </div>
     <div class="px-4 sm:px-6 lg:px-8">
       <div class="sm:flex sm:items-center">
         <div class="sm:flex-auto">
@@ -67,18 +157,19 @@
                         >
                           {{ tenant.is_active ? 'Deactivate' : 'Activate' }}
                         </button>
-                        <a 
+                        <Link
                           :href="route('super-admin.tenants.edit', tenant.id)" 
                           class="text-indigo-600 hover:text-indigo-900"
                         >
                           Edit
-                        </a>
-                        <button
-                          @click="confirmDelete(tenant)"
-                          class="text-red-600 hover:text-red-900"
+                        </Link>
+    
+                  <Link
+                          :href="route('super-admin.tenants.show', tenant.id)" 
+                          class="text-indigo-600 hover:text-indigo-900"
                         >
-                          Delete
-                        </button>
+                          Show
+                    </Link>
                       </div>
                     </td>
                   </tr>
@@ -88,20 +179,20 @@
               <!-- Pagination -->
               <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
                 <div class="flex-1 flex justify-between sm:hidden">
-                  <a 
+                  <Link 
                     v-if="tenants.prev_page_url"
                     :href="tenants.prev_page_url" 
                     class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Previous
-                  </a>
-                  <a 
+                  </Link>
+                  <Link 
                     v-if="tenants.next_page_url"
                     :href="tenants.next_page_url" 
                     class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                   >
                     Next
-                  </a>
+                  </Link>
                 </div>
                 <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                   <div>
@@ -117,7 +208,7 @@
                   </div>
                   <div>
                     <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                      <a 
+                      <Link 
                         v-for="(link, index) in tenants.links" 
                         :key="index"
                         :href="link.url"
@@ -130,7 +221,7 @@
                           index === tenants.links.length - 1 ? 'rounded-r-md' : ''
                         ]"
                         v-html="link.label"
-                      ></a>
+                      ></Link>
                     </nav>
                   </div>
                 </div>
@@ -176,18 +267,58 @@
 <script>
 import SuperAdminLayout from '@/Layouts/SuperAdminLayout.vue';
 import ConfirmationModal from '@/Components/ConfirmationModal.vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 export default {
   components: {
     SuperAdminLayout,
     ConfirmationModal,
+    Link,
   },
   
   props: {
     tenants: Object,
   },
   
+  setup() {
+    const page = usePage();
+    const showSuccess = ref(false);
+    const showError = ref(false);
+    
+    // Initialize with any existing flash messages
+    if (page.props.flash?.success) {
+      showSuccess.value = true;
+      setTimeout(() => { showSuccess.value = false; }, 5000);
+    }
+    if (page.props.flash?.error) {
+      showError.value = true;
+      setTimeout(() => { showError.value = false; }, 5000);
+    }
+    
+    // Watch for changes in flash messages
+    watch(() => page.props.flash, (newVal, oldVal) => {
+      // Only proceed if newVal is defined
+      if (!newVal) return;
+      
+      // Check for success message
+      if (newVal.success && (!oldVal || newVal.success !== oldVal.success)) {
+        showSuccess.value = true;
+        // Auto-hide after 5 seconds
+        setTimeout(() => { showSuccess.value = false; }, 5000);
+      }
+      
+      // Check for error message
+      if (newVal.error && (!oldVal || newVal.error !== oldVal.error)) {
+        showError.value = true;
+        // Auto-hide after 5 seconds
+        setTimeout(() => { showError.value = false; }, 5000);
+      }
+    }, { deep: true });
+    
+    return { showSuccess, showError };
+  },
   data() {
     return {
       confirmingDeletion: false,
@@ -224,9 +355,15 @@ export default {
     toggleStatus(tenant) {
       this.$inertia.post(route('super-admin.tenants.toggle-status', tenant.id), {}, {
         preserveScroll: true,
-        onSuccess: () => {
-          // Show success message
-        },
+        onError: (errors) => {
+          // Show error message
+          this.showError = true;
+          setTimeout(() => { this.showError = false; }, 5000);
+          // Also set the error message in the flash for the next page load
+          this.$page.props.flash = {
+            error: 'Failed to update tenant status. Please try again.',
+          };
+        }
       });
     },
   },
