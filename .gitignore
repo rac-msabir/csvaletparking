@@ -1,0 +1,57 @@
+# Laravel 10+ default .gitignore
+
+# Dependencies
+/vendor/
+/node_modules/
+AGENT.md
+
+# Environment files
+.env
+.env.*.local
+.env.backup
+.phpunit.result.cache
+
+# Logs
+storage/logs/*.log
+
+# Caches
+bootstrap/cache/*
+storage/framework/cache/*
+storage/framework/views/*
+
+# Compiled assets
+/public/build
+/public/hot
+
+# Development
+Homestead.json
+Homestead.yaml
+.npm
+.DS_Store
+.idea
+.vscode
+*.sublime-*
+
+# Testing
+.phpunit.cache
+/coverage
+
+# Laravel 4 specific
+bootstrap/compiled.php
+app/storage/
+
+# Laravel 5 & Lumen specific
+public/storage
+public/hot
+
+# Laravel 5 & Lumen specific with changed public path
+public_html/storage
+public_html/hot
+
+# Debugbar
+storage/debugbar/
+
+# Backup files
+*.bak
+*.swp
+*~
