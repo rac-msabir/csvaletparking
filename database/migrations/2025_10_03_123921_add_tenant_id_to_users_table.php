@@ -23,7 +23,6 @@ return new class extends Migration
             $table->boolean('is_active')->after('locale')->default(true);
             $table->timestamp('last_login_at')->after('is_active')->nullable();
             $table->string('last_login_ip')->after('last_login_at')->nullable();
-            $table->timestamp('email_verified_at')->nullable()->change();
             
             // Add indexes
             $table->index('tenant_id');

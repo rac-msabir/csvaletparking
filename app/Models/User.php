@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -21,7 +20,6 @@ class User extends Authenticatable
     use HasTeams;
     use Notifiable;
     use TwoFactorAuthenticatable;
-    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -116,6 +114,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'last_login_at' => 'datetime',
             'is_active' => 'boolean',
+            'is_super_admin' => 'boolean',
             'settings' => 'array',
         ]);
     }
@@ -216,7 +215,7 @@ class User extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->email === config('app.super_admin_email');
+        return $this->is_super_admin === true || $this->is_super_admin === 1 || $this->is_super_admin === '1';
     }
 
     /**

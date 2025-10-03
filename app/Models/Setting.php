@@ -311,11 +311,12 @@ class Setting extends Model
     {
         static::saved(function ($setting) {
             // Clear the cache for this setting when it's updated
-            Cache::forget("setting.{$setting->key}." . ($setting->tenant_id ?: 'global'));
+            \Illuminate\Support\Facades\Cache::forget("setting.{$setting->key}." . ($setting->tenant_id ?: 'global'));
         });
 
         static::deleted(function ($setting) {
             // Clear the cache for this setting when it's deleted
-            Cache::forget("setting.{$setting->key}." . ($setting->tenant_id ?: 'global'));
+            \Illuminate\Support\Facades\Cache::forget("setting.{$setting->key}." . ($setting->tenant_id ?: 'global'));
         });
     }
+}
