@@ -260,11 +260,11 @@
               @click="printQRCode">
               Print QR Code
             </button>
-            <button type="button" 
-              class="col-span-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
-              @click="showQRModal = false">
+            <Link 
+              :href="route('employee.dashboard')" 
+              class="col-span-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
               Close
-            </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -333,15 +333,80 @@ const generateQRCode = async (ticket) => {
   }
 };
 
-const downloadQRCode = () => {
-  if (!qrCodeUrl.value) return;
-  
-  const link = document.createElement('a');
-  link.download = `ticket-${new Date().getTime()}.png`;
-  link.href = qrCodeUrl.value;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+const downloadQRCode = async () => {
+  try {
+    // Use the stored QR code URL if available, otherwise use the generated one
+    const qrCodeSource = storedQrCodeUrl.value || qrCodeUrl.value;
+    
+    if (!qrCodeSource) {
+      console.error('No QR code available to download');
+      return;
+    }
+
+    // Get the ticket number from the form or use a default
+    const ticketNumber = form.ticket_number || qrCodeSource;
+    // Clean the ticket number to ensure it's a valid filename
+    const cleanTicketNumber = ticketNumber.toString().replace(/[^a-zA-Z0-9-_]/g, '-');
+    const fileName = `ticket-${cleanTicketNumber}`;
+    
+    // If we have a stored URL (from the server)
+    if (storedQrCodeUrl.value) {
+      // Ensure we have an absolute URL
+      const absoluteUrl = qrCodeSource.startsWith('http') 
+        ? qrCodeSource 
+        : `${window.location.origin}${qrCodeSource}`;
+      
+      try {
+        // Fetch the SVG content directly
+        const response = await fetch(absoluteUrl, { 
+          headers: {
+            'Accept': 'image/svg+xml',
+            'Cache-Control': 'no-cache'
+          },
+          cache: 'no-cache'
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch SVG');
+        
+        const svgText = await response.text();
+        const blob = new Blob([svgText], { type: 'image/svg+xml' });
+        const blobUrl = window.URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = fileName;
+        link.rel = 'noopener noreferrer';
+        
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        setTimeout(() => {
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(blobUrl);
+        }, 100);
+        
+      } catch (err) {
+        console.error('Error downloading SVG:', err);
+        // Fallback to opening in new tab if download fails
+        window.open(absoluteUrl, '_blank');
+      }
+    } 
+    // If we have a data URL (from the generated QR code)
+    else if (qrCodeSource.startsWith('data:')) {
+      const link = document.createElement('a');
+      link.href = qrCodeSource;
+      link.download = fileName;
+      link.rel = 'noopener noreferrer';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    
+  } catch (error) {
+    console.error('Error downloading QR code:', error);
+  }
 };
 
 const printQRCode = () => {
