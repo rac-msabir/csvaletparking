@@ -150,7 +150,7 @@ class TicketController extends Controller
             'status' => $validated['status'],
         ]);
 
-        return redirect()->route('tenant.tickets.index')
+        return redirect()->route('tenant.dashboard')
             ->with('success', 'Ticket updated successfully.');
     }
 
@@ -163,7 +163,7 @@ class TicketController extends Controller
         
         $ticket->delete();
 
-        return redirect()->route('tenant.tickets.index')
+        return redirect()->route('tenant.dashboard')
             ->with('success', 'Ticket deleted successfully.');
     }
 
