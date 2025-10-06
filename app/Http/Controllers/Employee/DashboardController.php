@@ -23,6 +23,7 @@ class DashboardController extends Controller
         $userId = $user->id;
         $tenantId = $user->tenant_id;
         $today = Carbon::today()->toDateString();
+
         
         // Get stats
         $stats = [
@@ -34,12 +35,10 @@ class DashboardController extends Controller
                 ->count(),
             // 'avg_response_time' => $this->getAverageResponseTime($userId),
         ];
+// dd($stats);
 
         // Get recent tickets (last 5)
         $recentTickets = Ticket::where('assigned_to', $userId)
-            // ->with('customer')
-            ->latest()
-            ->take(5)
             ->get()
             ->map(function ($ticket) {
                 return [
@@ -52,6 +51,8 @@ class DashboardController extends Controller
                     'statusClass' => $this->getStatusClass($ticket->status),
                 ];
             });
+
+            // dd($recentTickets);
 
         return Inertia::render('Employee/Dashboard', [
             'stats' => $stats,

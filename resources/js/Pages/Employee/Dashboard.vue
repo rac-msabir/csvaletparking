@@ -2,7 +2,7 @@
   <AppLayout>
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        Tenant Dashboard
+        Employee Dashboard
       </h2>
     </template>
 
@@ -59,9 +59,9 @@
             <div class="mt-12">
               <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-medium text-gray-900">Recent Tickets</h3>
-                <!-- <Link :href="route('tickets.create')" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                <Link :href="route('employee.tickets.create')" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
                   New Ticket
-                </Link> -->
+                </Link>
               </div>
               
               <div class="bg-white shadow overflow-hidden sm:rounded-md">
@@ -123,48 +123,9 @@ export default {
   },
   
   props: {
-    stats: {
-      type: Object,
-      default: () => ({
-        active_tickets: 0,
-        employees_count: 0,
-        avg_response_time: '0m',
-      }),
+    stats: Object,
+    recentTickets: Array,
     },
-  },
 
-  data() {
-    return {
-      recentTickets: [
-        {
-          id: 1,
-          title: 'Parking space issue',
-          reference: 'TKT-001',
-          customer_name: 'John Doe',
-          created_at: '2 hours ago',
-          status: 'Open',
-          statusClass: 'bg-yellow-100 text-yellow-800',
-        },
-        {
-          id: 2,
-          title: 'Payment query',
-          reference: 'TKT-002',
-          customer_name: 'Jane Smith',
-          created_at: '5 hours ago',
-          status: 'In Progress',
-          statusClass: 'bg-blue-100 text-blue-800',
-        },
-        {
-          id: 3,
-          title: 'New parking request',
-          reference: 'TKT-003',
-          customer_name: 'Robert Johnson',
-          created_at: '1 day ago',
-          status: 'Completed',
-          statusClass: 'bg-green-100 text-green-800',
-        },
-      ],
-    };
-  },
 };
 </script>

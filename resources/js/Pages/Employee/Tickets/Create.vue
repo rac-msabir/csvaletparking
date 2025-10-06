@@ -169,20 +169,18 @@
                     <div class="mt-5 md:mt-0 md:col-span-2">
                       <div class="grid grid-cols-6 gap-6">
                         <div class="col-span-6">
-                          <label for="assigned_to" class="block text-sm font-medium text-gray-700">Assign To</label>
-                          <select 
-                            id="assigned_to" 
-                            v-model="form.assigned_to" 
-                            class="mt-1 block w-full border border-gray-300 bg-white rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            :class="{ 'border-red-300 text-red-900': form.errors.assigned_to }"
-                          >
-                            <option :value="null">Unassigned</option>
-                            <option v-for="employee in employees" :key="employee.id" :value="employee.id">
-                              {{ employee.name }}
-                            </option>
-                          </select>
-                          <p v-if="form.errors.assigned_to" class="mt-2 text-sm text-red-600">{{ form.errors.assigned_to }}</p>
+                          <label for="assigned_to" class="block text-sm font-medium text-gray-700">Assigned To</label>
+                          <div class="mt-1">
+                            <input 
+                              type="text" 
+                              :value="$page.props.auth.user.name" 
+                              disabled 
+                              class="block w-full border border-gray-300 bg-gray-100 rounded-md shadow-sm py-2 px-3 text-gray-700 sm:text-sm"
+                            >
+                          </div>
+                          <p class="mt-1 text-sm text-gray-500">Tickets are automatically assigned to you.</p>
                         </div>
+
 
                         <div class="col-span-6">
                           <label for="special_instructions" class="block text-sm font-medium text-gray-700">Special Instructions</label>
@@ -203,7 +201,7 @@
                 <!-- Form Actions -->
                 <div class="flex justify-end">
                   <Link 
-                    :href="route('tenant.tickets.index')" 
+                    :href="route('employee.dashboard')" 
                     class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Cancel
@@ -254,14 +252,21 @@ const form = useForm({
   parking_zone: '',
   parking_spot: '',
   special_instructions: '',
-  assigned_to: null,
+  errors: {},
 });
 
 const submit = () => {
-  form.post(route('tenant.tickets.store'), {
+  form.post(route('employee.tickets.store'), {
     preserveScroll: true,
     onSuccess: () => {
-      // Form was successful
+      form.reset();
+      //redirect to employee dashboard
+      window.location.href = route('employee.dashboard');
+    },
+    onError: () => {
+      console.log(form.errors);
+      form.errors = form.errors;
+      
     },
   });
 };

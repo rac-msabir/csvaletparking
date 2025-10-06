@@ -6,7 +6,7 @@
           Ticket Management
         </h2>
         <Link 
-          :href="route('tenant.tickets.create')" 
+          :href="route('employee.tickets.create')" 
           class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
         >
           New Ticket
@@ -66,7 +66,7 @@
                       {{ formatDateTime(ticket.check_in_at) }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link :href="route('tenant.tickets.edit', ticket.id)" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</Link>
+                      <Link :href="route('employee.tickets.edit', ticket.id)" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</Link>
                       <button 
                         @click="confirmDelete(ticket)" 
                         class="text-red-600 hover:text-red-900"
@@ -150,7 +150,7 @@ const deleteTicket = () => {
   
   processing.value = true;
   
-  useForm().delete(route('tenant.tickets.destroy', ticketToDelete.value.id), {
+  useForm().delete(route('employee.tickets.destroy', ticketToDelete.value.id), {
     preserveScroll: true,
     onSuccess: () => closeModal(),
     onFinish: () => (processing.value = false),

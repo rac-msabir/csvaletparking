@@ -5,6 +5,8 @@ use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\SuperAdmin\DashboardController as SuperAdminDashboardController;
 use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController;
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
+use App\Http\Controllers\Employee\TicketController as EmployeeTicketController;
+use App\Http\Controllers\Tenant\TicketController as TenantTicketController;
 use Inertia\Inertia;
 
 // Admin Authentication Routes
@@ -12,8 +14,8 @@ Route::prefix('admin')->group(function () {
     Route::get('/login', [AdminLoginController::class, 'create'])
         ->middleware('guest')
         ->name('admin.login');
-        
-    Route::post('/login', [AdminLoginController::class, 'store']);
+
+    Route::post('/login', [AdminLoginController::class, 'store']); //wrong
     Route::post('/logout', [AdminLoginController::class, 'destroy'])
         ->middleware('auth')
         ->name('admin.logout');
@@ -26,13 +28,13 @@ Route::get('/', function () {
 
 // Employee Authentication Routes
 Route::prefix('employee')->group(function () {
-    Route::get('/login', [App\Http\Controllers\Auth\EmployeeLoginController::class, 'create'])
+    Route::get('/login', [EmployeeTicketController::class, 'create'])
         ->middleware('guest')
         ->name('employee.login');
-        
-    Route::post('/login', [App\Http\Controllers\Auth\EmployeeLoginController::class, 'store']);
-    
-    Route::post('/logout', [App\Http\Controllers\Auth\EmployeeLoginController::class, 'destroy'])
+
+    Route::post('/login', [EmployeeTicketController::class, 'store']); //wrong
+
+    Route::post('/logout', [EmployeeTicketController::class, 'destroy'])
         ->middleware('auth')
         ->name('employee.logout');
 });
@@ -42,7 +44,7 @@ Route::middleware(['auth'])->group(function () {
     // Dashboard Route
     Route::get('/dashboard', function () {
         $user = auth()->user();
-        
+
         if ($user->is_super_admin) {
             return redirect()->route('super-admin.dashboard');
         } elseif ($user->is_tenant_admin) {
@@ -65,17 +67,37 @@ Route::middleware(['auth'])->group(function () {
         ->name('tenant.')
         ->middleware('can:tenant-admin')
         ->group(function () {
+
+            // Tickets Resource
             // Dashboard
             Route::get('/dashboard', [TenantDashboardController::class, 'index'])
                 ->name('dashboard');
-                
-            // Tickets Resource
-            Route::resource('tickets', \App\Http\Controllers\Tenant\TicketController::class)
-                ->names('tickets');
-                
+            // Tickets
+            Route::get('/tickets', [TenantDashboardController::class, 'index'])
+                ->name('tickets.index');
+
+            Route::get('/tickets/create', [TenantTicketController::class, 'create'])
+                ->name('tickets.create');
+
+            Route::post('/tickets/store', [TenantTicketController::class, 'store'])
+                ->name('tickets.store');
+
+            Route::get('/tickets/{ticket}', [TenantTicketController::class, 'show'])
+                ->name('tickets.show');
+
+            Route::get('/tickets/{ticket}/edit', [TenantTicketController::class, 'edit'])
+                ->name('tickets.edit');
+
+            Route::put('/tickets/{ticket}', [TenantTicketController::class, 'update'])
+                ->name('tickets.update');
+
+            // Employee tasks API
+            Route::get('/tasks', [EmployeeDashboardController::class, 'tasks'])
+                ->name('tasks');
+
             // Additional ticket routes
             Route::prefix('tickets')->group(function () {
-                Route::post('{ticket}/status', [\App\Http\Controllers\Tenant\TicketController::class, 'updateStatus'])
+                Route::post('{ticket}/status', [TenantTicketController::class, 'updateStatus'])
                     ->name('tickets.status.update');
             });
         });
@@ -88,20 +110,26 @@ Route::middleware(['auth'])->group(function () {
             // Dashboard
             Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])
                 ->name('dashboard');
-            
+
             // Tickets
-            Route::get('/tickets', [\App\Http\Controllers\Employee\TicketController::class, 'index'])
+            Route::get('/tickets', [EmployeeTicketController::class, 'index'])
                 ->name('tickets.index');
-                
-            Route::get('/tickets/{ticket}', [\App\Http\Controllers\Employee\TicketController::class, 'show'])
+
+            Route::get('/tickets/create', [EmployeeTicketController::class, 'create'])
+                ->name('tickets.create');
+
+            Route::post('/tickets/store', [EmployeeTicketController::class, 'store'])
+                ->name('tickets.store');
+
+            Route::get('/tickets/{ticket}', [EmployeeTicketController::class, 'show'])
                 ->name('tickets.show');
-                
-            Route::get('/tickets/{ticket}/edit', [\App\Http\Controllers\Employee\TicketController::class, 'edit'])
+
+            Route::get('/tickets/{ticket}/edit', [EmployeeTicketController::class, 'edit'])
                 ->name('tickets.edit');
-                
-            Route::put('/tickets/{ticket}', [\App\Http\Controllers\Employee\TicketController::class, 'update'])
+
+            Route::put('/tickets/{ticket}', [EmployeeTicketController::class, 'update'])
                 ->name('tickets.update');
-            
+
             // Employee tasks API
             Route::get('/tasks', [EmployeeDashboardController::class, 'tasks'])
                 ->name('tasks');

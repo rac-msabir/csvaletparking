@@ -68,6 +68,7 @@ class Ticket extends Model
         'check_out_latitude',
         'check_out_longitude',
         'tenant_id',
+        'assigned_to',
         'created_by',
         'delivered_by',
     ];

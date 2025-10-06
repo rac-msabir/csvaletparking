@@ -105,15 +105,18 @@
               </div>
 
               <!-- Assigned To -->
-              <div class="mb-8" v-if="employees.length > 0">
-                <label for="assigned_to" class="block text-sm font-medium text-gray-700">Assign To</label>
-                <select id="assigned_to" v-model="form.assigned_to" class="mt-1 block w-full md:w-1/3 rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                  <option :value="null">Unassigned</option>
-                  <option v-for="employee in employees" :key="employee.id" :value="employee.id">
-                    {{ employee.name }}
-                  </option>
-                </select>
-                <div v-if="form.errors.assigned_to" class="text-red-500 text-xs mt-1">{{ form.errors.assigned_to }}</div>
+              <div class="mb-8">
+                <label for="assigned_to" class="block text-sm font-medium text-gray-700">Assigned To</label>
+                <div class="mt-1">
+                  <input 
+                    type="text" 
+                    :value="$page.props.auth.user.name" 
+                    disabled 
+                    class="bg-gray-100 border border-gray-300 text-gray-700 rounded-md shadow-sm w-full md:w-1/3 p-2"
+                  >
+                  <input type="hidden" v-model="form.assigned_to" :value="$page.props.auth.user.id" />
+                </div>
+                <p class="mt-1 text-sm text-gray-500">Tickets are automatically assigned to you.</p>
               </div>
 
               <!-- Form Actions -->
