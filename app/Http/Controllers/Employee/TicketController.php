@@ -4,12 +4,16 @@ namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 use App\Http\Requests\StoreTicketRequest;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 use App\Models\Employee;
 
 class TicketController extends Controller
@@ -38,10 +42,11 @@ class TicketController extends Controller
             ]);
         }
 
-        // TODO: Generate and save QR code
-        // $ticket->update([
-        //     'qr_code_path' => $this->generateQrCode($ticket)
-        // ]);
+        // Generate and save QR code
+        $qrCodePath = $this->generateQrCode($ticket);
+        $ticket->update([
+            'qr_code_path' => $qrCodePath
+        ]);
 
         // Return the created ticket data for Inertia
         return Inertia::render('Employee/Tickets/Create', [
@@ -50,26 +55,44 @@ class TicketController extends Controller
         ]);
     }
 
-    /**
-     * Generate QR code for the ticket
-     */
-    // protected function generateQrCode($ticket)
-    // {
-    //     $qrCode = QrCode::size(200)
-    //         ->generate(route('tickets.show', $ticket->uuid));
-    //
-    //     $path = 'qrcodes/' . $ticket->uuid . '.svg';
-    //    
-    //     Storage::disk('public')->put($path, $qrCode);
-    //
-    //     return $path;
-    // }
-    /**
-     * Display a listing of the tickets assigned to the employee.
-     */
+    protected function generateQrCode($ticket)
+    {
+        // Generate QR code content - using ticket number for simplicity
+        $qrContent = json_encode([
+            'ticket_number' => $ticket->ticket_number,
+            'id' => $ticket->id,
+            'created_at' => $ticket->created_at->toDateTimeString()
+        ]);
+
+        // Create directory if it doesn't exist
+        $directory = 'qrcodes/tickets';
+        if (!Storage::disk('public')->exists($directory)) {
+            Storage::disk('public')->makeDirectory($directory);
+        }
+
+        // Generate unique filename
+        $filename = 'ticket_' . $ticket->ticket_number . '_' . time() . '.svg';
+        $path = $directory . '/' . $filename;
+        
+        // Generate QR code using Bacon QR Code
+        $renderer = new ImageRenderer(
+            new RendererStyle(300),
+            new SvgImageBackEnd()
+        );
+        $writer = new Writer($renderer);
+        $svg = $writer->writeString($qrContent);
+        
+        // Save the QR code
+        Storage::disk('public')->put($path, $svg);
+        
+        return $path;
+    }
+
     public function index()
     {
         $tickets = Ticket::where('assigned_to', Auth::id())
+            ->with(['assignedEmployee', 'customer'])
+            ->latest()
             ->paginate(10);
 
         return Inertia::render('Employee/Tickets/Index', [
@@ -77,7 +100,6 @@ class TicketController extends Controller
         ]);
     }
 
-    
     /**
      * Display the specified ticket.
      */

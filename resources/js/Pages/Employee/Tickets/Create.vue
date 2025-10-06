@@ -242,7 +242,7 @@
             </h3>
             <div class="mt-2">
               <div class="flex justify-center mb-4">
-                <img :src="qrCodeUrl" alt="QR Code" class="w-48 h-48" />
+                <img :src="storedQrCodeUrl" alt="QR Code" class="w-48 h-48" />
               </div>
               <p class="text-sm text-gray-500 mb-4">
                 Please provide this QR code to the customer for vehicle retrieval.
@@ -299,6 +299,7 @@ const form = useForm({
 
 const showQRModal = ref(false);
 const qrCodeUrl = ref('');
+const storedQrCodeUrl = ref('');
 const qrCodeCanvas = ref(null);
 
 const generateQRCode = async (ticketNumber) => {
@@ -374,13 +375,26 @@ const submit = () => {
     onSuccess: (response) => {
       // Check if we have a ticket in the response
       if (response.props.ticket) {
-        generateQRCode(response.props.ticket.ticket_number);
+        const ticket = response.props.ticket;
+        // If we have a stored QR code path, use it
+        if (ticket.qr_code_path) {
+          storedQrCodeUrl.value = '/storage/' + ticket.qr_code_path;
+          showQRModal.value = true;
+        } else {
+          // Fallback to generating QR code on the fly
+          generateQRCode(ticket.ticket_number);
+        }
       } else {
-        // Fallback to check response data directly
+        // Fallback for non-Inertia responses
         try {
           const responseData = JSON.parse(response.data);
           if (responseData.ticket) {
-            generateQRCode(responseData.ticket.ticket_number);
+            if (responseData.ticket.qr_code_path) {
+              storedQrCodeUrl.value = '/storage/' + responseData.ticket.qr_code_path;
+              showQRModal.value = true;
+            } else {
+              generateQRCode(responseData.ticket.ticket_number);
+            }
             return;
           }
         } catch (e) {
