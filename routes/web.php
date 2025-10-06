@@ -24,6 +24,19 @@ Route::get('/', function () {
     return redirect()->route('admin.login');
 });
 
+// Employee Authentication Routes
+Route::prefix('employee')->group(function () {
+    Route::get('/login', [App\Http\Controllers\Auth\EmployeeLoginController::class, 'create'])
+        ->middleware('guest')
+        ->name('employee.login');
+        
+    Route::post('/login', [App\Http\Controllers\Auth\EmployeeLoginController::class, 'store']);
+    
+    Route::post('/logout', [App\Http\Controllers\Auth\EmployeeLoginController::class, 'destroy'])
+        ->middleware('auth')
+        ->name('employee.logout');
+});
+
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     // Dashboard Route
@@ -72,8 +85,22 @@ Route::middleware(['auth'])->group(function () {
         ->name('employee.')
         ->middleware('can:employee')
         ->group(function () {
+            // Dashboard
             Route::get('/dashboard', [EmployeeDashboardController::class, 'index'])
                 ->name('dashboard');
+            
+            // Tickets
+            Route::get('/tickets', [\App\Http\Controllers\Employee\TicketController::class, 'index'])
+                ->name('tickets.index');
+                
+            Route::get('/tickets/{ticket}', [\App\Http\Controllers\Employee\TicketController::class, 'show'])
+                ->name('tickets.show');
+                
+            Route::get('/tickets/{ticket}/edit', [\App\Http\Controllers\Employee\TicketController::class, 'edit'])
+                ->name('tickets.edit');
+                
+            Route::put('/tickets/{ticket}', [\App\Http\Controllers\Employee\TicketController::class, 'update'])
+                ->name('tickets.update');
             
             // Employee tasks API
             Route::get('/tasks', [EmployeeDashboardController::class, 'tasks'])

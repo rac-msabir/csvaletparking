@@ -227,6 +227,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if the user is an employee.
+     */
+    public function isEmployee(): bool
+    {
+        return $this->is_employee === true || $this->is_employee === 1 || $this->is_employee === '1';
+    }
+
+    /**
      * Get the user's role names.
      */
     public function getRoleNamesAttribute()

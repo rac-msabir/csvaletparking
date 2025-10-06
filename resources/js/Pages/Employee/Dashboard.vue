@@ -2,7 +2,7 @@
   <AppLayout>
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-        Employee Dashboard
+        Tenant Dashboard
       </h2>
     </template>
 
@@ -20,8 +20,8 @@
                     </svg>
                   </div>
                   <div class="ml-4">
-                    <h3 class="text-gray-500 text-sm font-medium">Assigned Tickets</h3>
-                    <p class="text-2xl font-semibold text-gray-900">{{ stats.assigned_tickets || 0 }}</p>
+                    <h3 class="text-gray-500 text-sm font-medium">Active Tickets</h3>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.active_tickets || 0 }}</p>
                   </div>
                 </div>
               </div>
@@ -30,12 +30,12 @@
                 <div class="flex items-center">
                   <div class="p-3 rounded-full bg-green-100">
                     <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                   </div>
                   <div class="ml-4">
-                    <h3 class="text-gray-500 text-sm font-medium">Completed Today</h3>
-                    <p class="text-2xl font-semibold text-gray-900">{{ stats.completed_today || 0 }}</p>
+                    <h3 class="text-gray-500 text-sm font-medium">Employees</h3>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.employees_count || 0 }}</p>
                   </div>
                 </div>
               </div>
@@ -48,55 +48,58 @@
                     </svg>
                   </div>
                   <div class="ml-4">
-                    <h3 class="text-gray-500 text-sm font-medium">Avg. Resolution Time</h3>
-                    <p class="text-2xl font-semibold text-gray-900">{{ stats.avg_resolution_time || '0m' }}</p>
+                    <h3 class="text-gray-500 text-sm font-medium">Avg. Response Time</h3>
+                    <p class="text-2xl font-semibold text-gray-900">{{ stats.avg_response_time || '0m' }}</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Tasks -->
+            <!-- Recent Tickets -->
             <div class="mt-12">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Your Tasks</h3>
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Recent Tickets</h3>
+                <!-- <Link :href="route('tickets.create')" class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150">
+                  New Ticket
+                </Link> -->
+              </div>
+              
               <div class="bg-white shadow overflow-hidden sm:rounded-md">
                 <ul class="divide-y divide-gray-200">
-                  <li v-for="task in tasks" :key="task.id">
-                    <div class="px-4 py-4 flex items-center sm:px-6">
-                      <div class="min-w-0 flex-1 flex items-center">
-                        <div class="flex-shrink-0">
-                          <input type="checkbox" :checked="task.completed" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
-                        </div>
-                        <div class="min-w-0 flex-1 px-4 md:grid md:grid-cols-2 md:gap-4">
-                          <div>
-                            <p class="text-sm font-medium text-indigo-600 truncate">{{ task.title }}</p>
-                            <p class="mt-2 flex items-center text-sm text-gray-500">
-                              <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                              </svg>
-                              <span class="truncate">{{ task.customer }}</span>
-                            </p>
-                          </div>
-                          <div class="hidden md:block">
-                            <div>
-                              <p class="text-sm text-gray-900">
-                                Due {{ task.due_date }}
-                              </p>
-                              <p class="mt-2 flex items-center text-sm text-gray-500">
+                  <li v-for="ticket in recentTickets" :key="ticket.id">
+                    <Link :href="route('employee.tickets.show', ticket.id)" class="block hover:bg-gray-50">
+                      <div class="px-4 py-4 flex items-center sm:px-6">
+                        <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+                          <div class="truncate">
+                            <div class="flex text-sm">
+                              <p class="font-medium text-indigo-600 truncate">{{ ticket.title }}</p>
+                              <p class="ml-1 flex-shrink-0 font-normal text-gray-500">#{{ ticket.reference }}</p>
+                            </div>
+                            <div class="mt-2 flex">
+                              <div class="flex items-center text-sm text-gray-500">
                                 <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                  <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
                                 </svg>
-                                <span>Created {{ task.created_at }}</span>
-                              </p>
+                                {{ ticket.customer_name }}
+                              </div>
+                            </div>
+                          </div>
+                          <div class="mt-4 flex-shrink-0 sm:mt-0 sm:ml-5">
+                            <div class="flex items-center text-sm text-gray-500">
+                              <svg class="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                              </svg>
+                              <p>{{ ticket.created_at }}</p>
                             </div>
                           </div>
                         </div>
+                        <div class="ml-5 flex-shrink-0">
+                          <span :class="ticket.statusClass" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
+                            {{ ticket.status }}
+                          </span>
+                        </div>
                       </div>
-                      <div>
-                        <span :class="task.priorityClass" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full">
-                          {{ task.priority }}
-                        </span>
-                      </div>
-                    </div>
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -123,45 +126,42 @@ export default {
     stats: {
       type: Object,
       default: () => ({
-        assigned_tickets: 0,
-        completed_today: 0,
-        avg_resolution_time: '0m',
+        active_tickets: 0,
+        employees_count: 0,
+        avg_response_time: '0m',
       }),
     },
   },
 
   data() {
     return {
-      tasks: [
+      recentTickets: [
         {
           id: 1,
-          title: 'Inspect parking area A',
-          customer: 'Acme Corp',
-          due_date: 'today',
+          title: 'Parking space issue',
+          reference: 'TKT-001',
+          customer_name: 'John Doe',
           created_at: '2 hours ago',
-          priority: 'High',
-          priorityClass: 'bg-red-100 text-red-800',
-          completed: false,
+          status: 'Open',
+          statusClass: 'bg-yellow-100 text-yellow-800',
         },
         {
           id: 2,
-          title: 'Process monthly report',
-          customer: 'Internal',
-          due_date: 'in 2 days',
-          created_at: '1 day ago',
-          priority: 'Medium',
-          priorityClass: 'bg-yellow-100 text-yellow-800',
-          completed: false,
+          title: 'Payment query',
+          reference: 'TKT-002',
+          customer_name: 'Jane Smith',
+          created_at: '5 hours ago',
+          status: 'In Progress',
+          statusClass: 'bg-blue-100 text-blue-800',
         },
         {
           id: 3,
-          title: 'Attend team meeting',
-          customer: 'Internal',
-          due_date: 'in 3 days',
-          created_at: '2 days ago',
-          priority: 'Low',
-          priorityClass: 'bg-green-100 text-green-800',
-          completed: true,
+          title: 'New parking request',
+          reference: 'TKT-003',
+          customer_name: 'Robert Johnson',
+          created_at: '1 day ago',
+          status: 'Completed',
+          statusClass: 'bg-green-100 text-green-800',
         },
       ],
     };

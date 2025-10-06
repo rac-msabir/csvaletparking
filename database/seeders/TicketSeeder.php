@@ -14,9 +14,16 @@ class TicketSeeder extends Seeder
      */
     public function run(): void
     {
+        // Disable foreign key constraints
+        \DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        
         // Clear existing data
         \App\Models\Activity::truncate();
+        \App\Models\TicketImage::truncate();
         \App\Models\Ticket::truncate();
+        
+        // Re-enable foreign key constraints
+        \DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
         // Get or create a tenant admin user
         $admin = User::where('email', 'admin@example.com')->first();
