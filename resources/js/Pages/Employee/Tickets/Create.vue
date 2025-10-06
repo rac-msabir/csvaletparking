@@ -222,6 +222,13 @@
                     <span v-else>Create Ticket</span>
                   </button>
                 </div>
+                <!-- Location Status -->
+                <div class="px-4 py-3 bg-gray-50 text-right sm:px-6 rounded-b-lg">
+                  <p class="text-sm text-gray-500 text-left">
+                    <span v-if="!isLocationReady" class="text-yellow-600">{{ locationStatus }}</span>
+                    <span v-else class="text-green-600">{{ locationStatus }}</span>
+                  </p>
+                </div>
               </div>
             </form>
           </div>
@@ -294,10 +301,67 @@ const form = useForm({
   parking_zone: '',
   parking_spot: '',
   special_instructions: '',
+  check_in_latitude: null,
+  check_in_longitude: null,
+  check_out_latitude: null,
+  check_out_longitude: null,
   errors: {},
 });
 
 const showQRModal = ref(false);
+const locationStatus = ref('Getting your location...');
+
+const isLocationReady = ref(false);
+
+// Get user's current location when component mounts
+onMounted(() => {
+  getLocation();
+});
+
+async function getLocation() {
+  if (!navigator.geolocation) {
+    locationStatus.value = 'Geolocation is not supported by your browser';
+    return;
+  }
+
+  try {
+    locationStatus.value = 'Getting your location...';
+    const position = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: true,
+        timeout: 10000, // Increased timeout to 10 seconds
+        maximumAge: 0
+      });
+    });
+
+    // Set check-in location
+    form.check_in_latitude = position.coords.latitude;
+    form.check_in_longitude = position.coords.longitude;
+    
+    // For new tickets, we'll set check-out location to null initially
+    // as it will be updated when the vehicle is checked out
+    form.check_out_latitude = null;
+    form.check_out_longitude = null;
+    
+    isLocationReady.value = true;
+    locationStatus.value = 'Location captured successfully';
+  } catch (error) {
+    console.error('Error getting location:', error);
+    switch(error.code) {
+      case error.PERMISSION_DENIED:
+        locationStatus.value = 'Location access was denied. Please enable location services for this site.';
+        break;
+      case error.POSITION_UNAVAILABLE:
+        locationStatus.value = 'Location information is unavailable.';
+        break;
+      case error.TIMEOUT:
+        locationStatus.value = 'The request to get location timed out.';
+        break;
+      default:
+        locationStatus.value = 'An unknown error occurred while getting your location.';
+    }
+  }
+}
 const qrCodeUrl = ref('');
 const storedQrCodeUrl = ref('');
 const qrCodeCanvas = ref(null);
@@ -505,7 +569,22 @@ const printQRCode = () => {
   };
 };
 
-const submit = () => {
+const submit = async () => {
+  // If location is not ready, try to get it first
+  if (!isLocationReady.value) {
+    locationStatus.value = 'Getting your location...';
+    try {
+      await getLocation();
+      if (!isLocationReady.value) {
+        locationStatus.value = 'Location is required. Please enable location services and try again.';
+        return;
+      }
+    } catch (error) {
+      locationStatus.value = 'Error getting location. Please try again.';
+      return;
+    }
+  }
+
   form.post(route('employee.tickets.store'), {
     preserveScroll: true,
     onSuccess: (response) => {

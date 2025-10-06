@@ -33,6 +33,7 @@ class TicketController extends Controller
      */
     public function store(StoreTicketRequest $request)
     {
+        
         $ticket = Ticket::create($request->validated());
 
         // Generate ticket number if not provided
