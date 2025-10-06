@@ -71,7 +71,7 @@ Route::middleware(['auth'])->group(function () {
                 
             // Tickets Resource
             Route::resource('tickets', \App\Http\Controllers\Tenant\TicketController::class)
-                ->names('tenant.tickets');
+                ->names('tickets');
                 
             // Additional ticket routes
             Route::prefix('tickets')->group(function () {
