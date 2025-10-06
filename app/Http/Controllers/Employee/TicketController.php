@@ -57,11 +57,18 @@ class TicketController extends Controller
 
     protected function generateQrCode($ticket)
     {
-        // Generate QR code content - using ticket number for simplicity
+        // Generate QR code content with consistent format
         $qrContent = json_encode([
-            'ticket_number' => $ticket->ticket_number,
-            'id' => $ticket->id,
-            'created_at' => $ticket->created_at->toDateTimeString()
+            'ticket' => [
+                'id' => $ticket->id,
+                'ticket_number' => $ticket->ticket_number,
+                'customer_name' => $ticket->customer_name,
+                'vehicle_make' => $ticket->vehicle_make,
+                'vehicle_model' => $ticket->vehicle_model,
+                'license_plate' => $ticket->license_plate,
+                'created_at' => $ticket->created_at->toIso8601String(),
+                'qr_code_path' => $ticket->qr_code_path
+            ]
         ]);
 
         // Create directory if it doesn't exist
