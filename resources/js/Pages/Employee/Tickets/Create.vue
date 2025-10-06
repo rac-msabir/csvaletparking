@@ -228,12 +228,54 @@
         </div>
       </div>
     </div>
+
+    <!-- QR Code Modal -->
+    <div v-if="showQRModal" class="fixed z-50 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+      <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showQRModal = false"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        
+        <div class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
+          <div class="text-center">
+            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4" id="modal-title">
+              Ticket Created Successfully!
+            </h3>
+            <div class="mt-2">
+              <div class="flex justify-center mb-4">
+                <img :src="qrCodeUrl" alt="QR Code" class="w-48 h-48" />
+              </div>
+              <p class="text-sm text-gray-500 mb-4">
+                Please provide this QR code to the customer for vehicle retrieval.
+              </p>
+            </div>
+          </div>
+          <div class="mt-5 sm:mt-6 grid grid-cols-2 gap-3">
+            <button type="button" 
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+              @click="downloadQRCode">
+              Download QR Code
+            </button>
+            <button type="button" 
+              class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
+              @click="printQRCode">
+              Print QR Code
+            </button>
+            <button type="button" 
+              class="col-span-2 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+              @click="showQRModal = false">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </AppLayout>
 </template>
 
 <script setup>
 import { useForm } from '@inertiajs/vue3';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
+import QRCode from 'qrcode';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 
@@ -255,18 +297,103 @@ const form = useForm({
   errors: {},
 });
 
+const showQRModal = ref(false);
+const qrCodeUrl = ref('');
+const qrCodeCanvas = ref(null);
+
+const generateQRCode = async (ticketNumber) => {
+  try {
+    const url = await QRCode.toDataURL(ticketNumber, {
+      width: 300,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#ffffff'
+      }
+    });
+    qrCodeUrl.value = url;
+    showQRModal.value = true;
+  } catch (err) {
+    console.error('Error generating QR code:', err);
+  }
+};
+
+const downloadQRCode = () => {
+  if (!qrCodeUrl.value) return;
+  
+  const link = document.createElement('a');
+  link.download = `ticket-${new Date().getTime()}.png`;
+  link.href = qrCodeUrl.value;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const printQRCode = () => {
+  const printWindow = window.open('', '', 'width=600,height=600');
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Print QR Code</title>
+        <style>
+          @page { size: auto; margin: 0mm; }
+          body { 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+            padding: 20px;
+          }
+          .print-container { 
+            text-align: center; 
+            max-width: 100%;
+          }
+          .print-container img { 
+            max-width: 100%; 
+            height: auto;
+          }
+        </style>
+      </head>
+      <body onload="window.print();window.close()">
+        <div class="print-container">
+          <h2>Valet Parking Ticket</h2>
+          <img src="${qrCodeUrl.value}" alt="QR Code" />
+          <p>Scan this code to retrieve your vehicle</p>
+        </div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+};
+
 const submit = () => {
   form.post(route('employee.tickets.store'), {
     preserveScroll: true,
-    onSuccess: () => {
-      form.reset();
-      //redirect to employee dashboard
-      window.location.href = route('employee.dashboard');
+    onSuccess: (response) => {
+      // Check if we have a ticket in the response
+      if (response.props.ticket) {
+        generateQRCode(response.props.ticket.ticket_number);
+      } else {
+        // Fallback to check response data directly
+        try {
+          const responseData = JSON.parse(response.data);
+          if (responseData.ticket) {
+            generateQRCode(responseData.ticket.ticket_number);
+            return;
+          }
+        } catch (e) {
+          console.error('Error parsing response:', e);
+        }
+        // If we get here, something went wrong
+        form.reset();
+        window.location.href = route('employee.dashboard');
+      }
     },
-    onError: () => {
-      console.log(form.errors);
-      form.errors = form.errors;
-      
+    onError: (errors) => {
+      console.log('Form errors:', errors);
+      form.errors = errors;
     },
   });
 };

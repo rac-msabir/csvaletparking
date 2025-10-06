@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
+use Inertia\Inertia;
 use App\Http\Requests\StoreTicketRequest;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
@@ -43,8 +43,11 @@ class TicketController extends Controller
         //     'qr_code_path' => $this->generateQrCode($ticket)
         // ]);
 
-        return redirect()->route('employee.dashboard')
-            ->with('success', 'Ticket created successfully.');
+        // Return the created ticket data for Inertia
+        return Inertia::render('Employee/Tickets/Create', [
+            'ticket' => $ticket->fresh(),
+            'success' => 'Ticket created successfully.'
+        ]);
     }
 
     /**
