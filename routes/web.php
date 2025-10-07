@@ -28,7 +28,7 @@ Route::get('/', function () {
 
 // Employee Authentication Routes
 Route::prefix('employee')->group(function () {
-    Route::get('/login', [EmployeeTicketController::class, 'create'])
+    Route::get('/login', [AdminLoginController::class, 'store'])
         ->middleware('guest')
         ->name('employee.login');
 

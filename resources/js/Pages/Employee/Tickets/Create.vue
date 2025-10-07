@@ -282,6 +282,7 @@
 <script setup>
 import { useForm } from '@inertiajs/vue3';
 import { ref, onMounted, nextTick } from 'vue';
+import getTicketPrintTemplate from '@/Components/PrintTemplates/TicketPrintTemplate';
 import QRCode from 'qrcode';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
@@ -473,100 +474,109 @@ const downloadQRCode = async () => {
   }
 };
 
-const printQRCode = () => {
-  // Use the stored QR code URL if available, otherwise use the generated one
-  const qrCodeSource = storedQrCodeUrl.value || qrCodeUrl.value;
-  
-  // Get the ticket number from the form or response if available
-  const ticketNumber = form.ticket_number || qrCodeSource;
-  const printTitle = `Ticket-${ticketNumber}`;
-  
-  // Create a new window for printing with the ticket number in the title
-  const printWindow = window.open('', `print-${ticketNumber}`, 'width=600,height=600');
-  
-  // Get the current domain to create absolute URLs
-  const baseUrl = window.location.origin;
-  
-  // Create a temporary image to ensure it's loaded before printing
-  const tempImg = new Image();
-  tempImg.onload = function() {
-    // Once the image is loaded, write the print content
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>${printTitle}</title>
-          <style>
-            @page { 
-              size: auto; 
-              margin: 10mm;
-            }
-            body { 
-              font-family: Arial, sans-serif;
-              display: flex; 
-              justify-content: center; 
-              align-items: center; 
-              min-height: 100vh; 
-              margin: 0; 
-              padding: 20px;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            .print-container { 
-              text-align: center; 
-              max-width: 100%;
-              padding: 20px;
-              border: 1px solid #eee;
-              border-radius: 8px;
-              box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            }
-            .print-container h2 {
-              color: #1a202c;
-              margin-bottom: 20px;
-            }
-            .print-container img { 
-              max-width: 300px;
-              height: auto;
-              margin: 0 auto;
-              display: block;
-            }
-            .print-container p {
-              margin-top: 20px;
-              color: #4a5568;
-              font-size: 16px;
-            }
-            @media print {
-              body {
-                padding: 0;
-              }
-              .print-container {
-                border: none;
-                box-shadow: none;
-                padding: 0;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="print-container">
-            <h2>Valet Parking Ticket</h2>
-            <img src="${qrCodeSource}" alt="QR Code" onload="window.print();" />
-            <p>Scan this code to retrieve your vehicle</p>
-          </div>
-        </body>
-      </html>
-    `);
+const printQRCode = async () => {
+  try {
+    const qrCodeSource = storedQrCodeUrl.value || qrCodeUrl.value;
+    const ticketNumber = form.ticket_number || 'N/A';
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    // Create a canvas for the QR code
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    // Load the QR code image
+    await new Promise((resolve, reject) => {
+      img.crossOrigin = 'Anonymous';
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = qrCodeSource;
+    });
+
+    // Set canvas size to match QR code
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
+    
+    // Convert QR code to black and white for better thermal printing
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 4) {
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      const val = avg < 128 ? 0 : 255; // Simple threshold
+      data[i] = data[i + 1] = data[i + 2] = val;
+    }
+    ctx.putImageData(imageData, 0, 0);
+    
+    // Create ESC/POS commands
+    const ESC = '\x1B';
+    const GS = '\x1D';
+    const LF = '\x0A';
+    
+    // Initialize printer
+    let cmds = '';
+    
+    // Reset printer
+    cmds += ESC + '@';
+    
+    // Set alignment to center
+    cmds += ESC + 'a' + '\x01';
+    
+    // Set text size (double height and width)
+    cmds += GS + '!' + '\x11';
+    
+    // Add header
+    cmds += 'VALET PARKING' + LF + LF;
+    
+    // Reset text size
+    cmds += GS + '!' + '\x00';
+    
+    // Add ticket info
+    cmds += `Ticket: ${ticketNumber}${LF}`;
+    cmds += `Date: ${formattedDate}${LF}`;
+    cmds += `Customer: ${form.customer_name || 'N/A'}${LF}`;
+    cmds += `Phone: ${form.customer_phone || 'N/A'}${LF}`;
+    cmds += `Vehicle: ${form.vehicle_make || ''} ${form.vehicle_model || ''}${LF}`;
+    cmds += `Plate: ${form.license_plate || 'N/A'}${LF}${LF}`;
+    
+    // Add QR code
+    const qrWidth = 180; // 180 dots (1 inch = 8 dots at 203 DPI)
+    const qrData = canvas.toDataURL('image/png').split(',')[1];
+    const qrBinary = atob(qrData);
+    const qrBytes = new Uint8Array(qrBinary.length);
+    
+    for (let i = 0; i < qrBinary.length; i++) {
+      qrBytes[i] = qrBinary.charCodeAt(i);
+    }
+    
+    // Print QR code using ESC/POS image command
+    cmds += GS + '(L' + '\x06' + '\x00' + '\x30' + '\x00' + '\x01' + '\x01' + '\x01';
+    cmds += GS + 'v0' + '\x00' + String.fromCharCode(qrWidth, 0) + qrBinary + LF + LF;
+    
+    // Add footer
+    cmds += '--------------------------------' + LF;
+    cmds += 'THANK YOU FOR USING OUR SERVICE' + LF;
+    cmds += 'PLEASE KEEP THIS TICKET SAFE' + LF + LF;
+    
+    // Add cut command (partial cut with 5mm feed)
+    cmds += GS + 'V' + '\x41' + '\x05';
+    
+    // Open print dialog with raw ESC/POS commands
+    const printWindow = window.open('', '_blank');
+    const printContent = getTicketPrintTemplate(ticketNumber, cmds);
+    printWindow.document.write(printContent);
     printWindow.document.close();
-  };
+  } catch (error) {
+    console.error('Error printing QR code:', error);
+  }
   
-  // Set the image source to start loading
-  tempImg.src = qrCodeSource;
-  
-  // Add a fallback in case the image fails to load
-  tempImg.onerror = function() {
-    printWindow.document.write('<h2>Error: Could not load QR code image</h2>');
-    printWindow.document.close();
-  };
 };
 
 const submit = async () => {
@@ -585,55 +595,69 @@ const submit = async () => {
     }
   }
 
-  form.post(route('employee.tickets.store'), {
-    preserveScroll: true,
-    onSuccess: (response) => {
-      // Check if we have a ticket in the response
-      if (response.props.ticket) {
-        const ticket = response.props.ticket;
-        // If we have a stored QR code path, use it
-        if (ticket.qr_code_path) {
-          storedQrCodeUrl.value = '/storage/' + ticket.qr_code_path;
-          showQRModal.value = true;
-        } else {
-          // Fallback to generating QR code on the fly with full ticket data
-          generateQRCode(ticket);
-        }
-      } else {
-        // Fallback for non-Inertia responses
-        try {
-          const responseData = JSON.parse(response.data);
-          if (responseData.ticket) {
-            if (responseData.ticket.qr_code_path) {
-              storedQrCodeUrl.value = '/storage/' + responseData.ticket.qr_code_path;
-              showQRModal.value = true;
-            } else {
-              generateQRCode({
-                id: responseData.ticket.id,
-                ticket_number: responseData.ticket.ticket_number,
-                customer_name: responseData.ticket.customer_name,
-                vehicle_make: responseData.ticket.vehicle_make,
-                vehicle_model: responseData.ticket.vehicle_model,
-                license_plate: responseData.ticket.license_plate,
-                created_at: new Date().toISOString(),
-                qr_code_path: responseData.ticket.qr_code_path || ''
-              });
+  try {
+    await form.post(route('employee.tickets.store'), {
+      preserveScroll: true,
+      onSuccess: (response) => {
+        // Check if we have a ticket in the response
+        if (response.props.ticket) {
+          const ticket = response.props.ticket;
+          // If we have a stored QR code path, use it
+          if (ticket.qr_code_path) {
+            storedQrCodeUrl.value = '/storage/' + ticket.qr_code_path;
+            showQRModal.value = true;
+            return; // Stay on the page to show the QR code
+          } else {
+            // Fallback to generating QR code on the fly with full ticket data
+            generateQRCode(ticket);
+            return; // Stay on the page to show the generated QR code
+          }
+        } 
+        
+        // Handle non-Inertia responses
+        if (response.data) {
+          try {
+            const responseData = typeof response.data === 'string' 
+              ? JSON.parse(response.data) 
+              : response.data;
+              
+            if (responseData.ticket) {
+              if (responseData.ticket.qr_code_path) {
+                storedQrCodeUrl.value = '/storage/' + responseData.ticket.qr_code_path;
+                showQRModal.value = true;
+              } else {
+                generateQRCode({
+                  id: responseData.ticket.id,
+                  ticket_number: responseData.ticket.ticket_number,
+                  customer_name: responseData.ticket.customer_name,
+                  vehicle_make: responseData.ticket.vehicle_make,
+                  vehicle_model: responseData.ticket.vehicle_model,
+                  license_plate: responseData.ticket.license_plate,
+                  created_at: new Date().toISOString(),
+                  qr_code_path: responseData.ticket.qr_code_path || ''
+                });
+              }
+              return; // Stay on the page to show the QR code
             }
+          } catch (e) {
+            console.error('Error parsing response:', e);
+            // Show error to user
+            form.errors = { submit: ['Error processing the ticket.'] };
             return;
           }
-        } catch (e) {
-          console.error('Error parsing response:', e);
         }
         
         // If we get here, something went wrong
-        form.reset();
-        window.location.href = route('employee.dashboard');
-      }
-    },
-    onError: (errors) => {
-      console.log('Form errors:', errors);
-      form.errors = errors;
-    },
-  });
+        form.errors = { submit: ['Unexpected response from server.'] };
+      },
+      onError: (errors) => {
+        console.log('Form errors:', errors);
+        form.errors = errors;
+      },
+    });
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    form.errors = { submit: ['An error occurred while submitting the form.'] };
+  }
 };
 </script>
