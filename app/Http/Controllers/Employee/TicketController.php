@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Employee;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
-use Illuminate\Support\Str;
 use App\Http\Requests\StoreTicketRequest;
 use App\Models\Ticket;
+use App\Notifications\WhatsAppTicketCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -14,7 +14,7 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
-use App\Models\Employee;
+
 
 class TicketController extends Controller
 {
@@ -48,6 +48,14 @@ class TicketController extends Controller
         $ticket->update([
             'qr_code_path' => $qrCodePath
         ]);
+
+        // Send WhatsApp notification
+        try {
+            $ticket->notify(new WhatsAppTicketCreated($ticket));
+        } catch (\Exception $e) {
+            // Log the error but don't fail the request
+            \Log::error('Failed to send WhatsApp notification: ' . $e->getMessage());
+        }
 
         // Return the created ticket data for Inertia
         return Inertia::render('Employee/Tickets/Create', [

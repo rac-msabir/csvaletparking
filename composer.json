@@ -17,7 +17,8 @@
         "predis/predis": "^3.2",
         "spatie/laravel-permission": "^6.21",
         "spatie/laravel-sluggable": "^3.7",
-        "tightenco/ziggy": "^2.0"
+        "tightenco/ziggy": "^2.0",
+        "twilio/sdk": "^8.8"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
