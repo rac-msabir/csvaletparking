@@ -3,6 +3,7 @@
 namespace App\Channels;
 
 use Twilio\Rest\Client;
+use App\Models\WhatsAppMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
 
@@ -69,6 +70,18 @@ class WhatsAppChannel
                 'status' => $twilioMessage->status
             ]);
             
+            // Log the message to the database
+            $this->logWhatsAppMessage([
+                'phone_number' => $phoneNumber,
+                'message_sid' => $twilioMessage->sid,
+                'account_sid' => $config['sid'],
+                'status' => $twilioMessage->status,
+                'content' => $message,
+                'notifiable' => $notifiable,
+                'notification' => $notification,
+                'twilio_response' => json_encode($twilioMessage->toArray())
+            ]);
+            
             return $twilioMessage;
             
         } catch (\Exception $e) {
@@ -81,6 +94,21 @@ class WhatsAppChannel
                     'trace' => $e->getTraceAsString()
                 ]
             ]);
+            // Log the failed attempt
+            $this->logWhatsAppMessage([
+                'phone_number' => $phoneNumber,
+                'status' => 'failed',
+                'content' => $message,
+                'notifiable' => $notifiable,
+                'notification' => $notification,
+                'error_message' => $e->getMessage(),
+                'twilio_response' => json_encode([
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ])
+            ]);
+            
             throw $e; // Re-throw to let the notification system handle it
         }
     }
@@ -102,5 +130,60 @@ class WhatsAppChannel
         }
         
         return $phoneNumber;
+    }
+    
+    /**
+     * Log WhatsApp message to the database
+     *
+     * @param array $data
+     * @return WhatsAppMessage
+     */
+    protected function logWhatsAppMessage(array $data): WhatsAppMessage
+    {
+        $messageData = [
+            'customer_phone' => $data['phone_number'],
+            'content' => $data['content'],
+            'message_type' => 'outbound',
+            'status' => $data['status'] ?? 'pending',
+            'message_sid' => $data['message_sid'] ?? null,
+            'account_sid' => $data['account_sid'] ?? null,
+            'twilio_response' => $data['twilio_response'] ?? null,
+            'error_message' => $data['error_message'] ?? null,
+            'attempts' => 1,
+            'sent_at' => now(),
+        ];
+        
+        // Extract customer name and email from notifiable if available
+        $notifiable = $data['notifiable'] ?? null;
+        if ($notifiable) {
+            if (is_object($notifiable)) {
+                $messageData['customer_name'] = $notifiable->name ?? $notifiable->customer_name ?? null;
+                $messageData['customer_email'] = $notifiable->email ?? $notifiable->customer_email ?? null;
+                
+                // If notifiable is a Ticket model or has ticket_id
+                if (method_exists($notifiable, 'getKey')) {
+                    $messageData['ticket_id'] = $notifiable->ticket_id ?? $notifiable->id ?? null;
+                    $messageData['tenant_id'] = $notifiable->tenant_id ?? null;
+                }
+            } elseif (is_array($notifiable)) {
+                $messageData['customer_name'] = $notifiable['name'] ?? $notifiable['customer_name'] ?? null;
+                $messageData['customer_email'] = $notifiable['email'] ?? $notifiable['customer_email'] ?? null;
+                $messageData['ticket_id'] = $notifiable['ticket_id'] ?? $notifiable['id'] ?? null;
+                $messageData['tenant_id'] = $notifiable['tenant_id'] ?? null;
+            }
+        }
+        
+        // If we have a notification, try to get template name if it's a template message
+        $notification = $data['notification'] ?? null;
+        if ($notification && method_exists($notification, 'getTemplateName')) {
+            $messageData['template_name'] = $notification->getTemplateName();
+        }
+        
+        // Ensure tenant_id is set, fallback to current tenant or default
+        if (empty($messageData['tenant_id'])) {
+            $messageData['tenant_id'] = tenant('id') ?? 1; // Fallback to 1 if no tenant context
+        }
+        
+        return WhatsAppMessage::create($messageData);
     }
 }

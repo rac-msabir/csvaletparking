@@ -22,6 +22,20 @@ class User extends Authenticatable
     use TwoFactorAuthenticatable;
 
     /**
+     * Route notifications for the WhatsApp channel.
+     *
+     * @param  \Illuminate\Notifications\Notification  $notification
+     * @return string
+     */
+    public function routeNotificationForWhatsApp($notification)
+    {
+        Log::info('Route notification for WhatsApp', [
+            'phone' => $this->phone,
+        ]);
+        return '923496127642';
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
