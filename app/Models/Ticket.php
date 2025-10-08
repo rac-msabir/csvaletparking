@@ -39,9 +39,18 @@ class Ticket extends Model
      *
      * @var array<int, string>
      */
+    /**
+     * Get the public URL for this ticket.
+     */
+    public function getPublicUrlAttribute(): string
+    {
+        return route('tickets.public.show', $this->public_token);
+    }
+
     protected $fillable = [
         'uuid',
         'ticket_number',
+        'public_token',
         'status',
         'customer_name',
         'customer_phone',
@@ -100,6 +109,7 @@ class Ticket extends Model
         'status_label',
         'qr_code_url',
         'is_active',
+        'public_url',
     ];
 
     /**
@@ -124,6 +134,10 @@ class Ticket extends Model
             
             if (empty($ticket->check_in_at)) {
                 $ticket->check_in_at = now();
+            }
+            
+            if (empty($ticket->public_token)) {
+                $ticket->public_token = Str::random(32);
             }
         });
     }

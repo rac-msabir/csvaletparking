@@ -7,6 +7,7 @@ use App\Http\Controllers\Tenant\DashboardController as TenantDashboardController
 use App\Http\Controllers\Employee\DashboardController as EmployeeDashboardController;
 use App\Http\Controllers\Employee\TicketController as EmployeeTicketController;
 use App\Http\Controllers\Tenant\TicketController as TenantTicketController;
+use App\Http\Controllers\Public\TicketController as PublicTicketController;
 use Inertia\Inertia;
 
 // Admin Authentication Routes
@@ -20,6 +21,10 @@ Route::prefix('admin')->group(function () {
         ->middleware('auth')
         ->name('admin.logout');
 });
+
+// Public ticket view route
+Route::get('/tickets/{token}', [PublicTicketController::class, 'show'])
+    ->name('tickets.public.show');
 
 // Redirect root to admin login
 Route::get('/', function () {

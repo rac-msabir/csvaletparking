@@ -33,7 +33,6 @@ class TicketController extends Controller
      */
     public function store(StoreTicketRequest $request)
     {
-        
         $ticket = Ticket::create($request->validated());
 
         // Generate ticket number if not provided
@@ -48,13 +47,15 @@ class TicketController extends Controller
         $ticket->update([
             'qr_code_path' => $qrCodePath
         ]);
-
-        // Send WhatsApp notification
-        try {
-            $ticket->notify(new WhatsAppTicketCreated($ticket));
-        } catch (\Exception $e) {
-            // Log the error but don't fail the request
-            \Log::error('Failed to send WhatsApp notification: ' . $e->getMessage());
+        
+        // Send WhatsApp notification to customer if phone number is provided
+        if ($ticket->customer_phone) {
+            try {
+                $ticket->notify(new WhatsAppTicketCreated($ticket));
+            } catch (\Exception $e) {
+                // Log the error but don't fail the request
+                \Log::error('Failed to send WhatsApp notification: ' . $e->getMessage());
+            }
         }
 
         // Return the created ticket data for Inertia
