@@ -8,10 +8,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Ticket extends Model
 {
-    use HasFactory, SoftDeletes, Notifiable;
+    use HasFactory, SoftDeletes, Notifiable, LogsActivity {
+        LogsActivity::bootLogsActivity as parentBootLogsActivity;
+    }
 
     /**
      * The statuses that a ticket can have.
@@ -45,6 +49,21 @@ class Ticket extends Model
     public function getPublicUrlAttribute(): string
     {
         return route('tickets.public.show', $this->public_token);
+    }
+
+    /**
+     * Get the options for the activity logger.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['status', 'check_out_at', 'delivered_at'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('ticket')
+            ->setDescriptionForEvent(function(string $eventName) {
+                return "Ticket has been {$eventName}";
+            });
     }
 
     protected $fillable = [

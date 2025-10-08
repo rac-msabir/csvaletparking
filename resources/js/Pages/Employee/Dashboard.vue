@@ -1,5 +1,7 @@
 <template>
-  <AppLayout>
+  <AppLayout :title="'Dashboard'">
+    <!-- Toast Notifications Container -->
+    <!-- The ToastContainer is automatically injected by vue3-toastify -->
     <template #header>
       <h2 class="font-semibold text-xl text-gray-800 leading-tight">
         Employee Dashboard
@@ -111,21 +113,93 @@
   </AppLayout>
 </template>
 
+<style scoped>
+/* Custom styles for notifications */
+.notification {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.5rem;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #3b82f6; /* blue-500 */
+}
+.notification-title {
+    font-weight: 600;
+    color: #1f2937; /* gray-800 */
+}
+.notification-message {
+    font-size: 0.875rem;
+    color: #4b5563; /* gray-600 */
+}
+</style>
+
 <script>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
+import { ref, onMounted, onUnmounted } from 'vue';
+import { toast } from 'vue3-toastify';
+import { toast as toastify } from 'vue3-toastify';
+import 'vue3-toastify/dist/index.css';
 
 export default {
-  components: {
-    AppLayout,
-    Head,
-    Link,
-  },
-  
-  props: {
-    stats: Object,
-    recentTickets: Array,
+    components: {
+        AppLayout,
+        Link,
     },
+    props: {
+        stats: Object,
+        recentTickets: Array,
+        auth: Object,
+    },
+    setup(props) {
+        const notifications = ref([]);
+        let channel = null;
 
+        onMounted(() => {
+            // Initialize Echo if not already available
+            if (window.Echo) {
+                // Listen for vehicle requested event
+                window.Echo.private(`user.${props.auth.user.id}`)
+                    .listen('.vehicle.requested', (data) => {
+                        showNotification({
+                            title: 'Vehicle Requested',
+                            message: data.message,
+                            url: data.url,
+                            ticketId: data.ticket_id
+                        });
+                    });
+            }
+        });
+
+        onUnmounted(() => {
+            if (channel) {
+                channel.stopListening('.vehicle.requested');
+            }
+        });
+
+        const showNotification = (notification) => {
+            toastify.info(
+                `<div class="flex flex-col">
+                    <span class="font-semibold">${notification.title}</span>
+                    <span class="text-sm">${notification.message}</span>
+                    ${notification.url ? `<a href="${notification.url}" class="text-blue-500 hover:underline mt-1 text-xs">View Details →</a>` : ''}
+                </div>`,
+                {
+                    position: 'top-right',
+                    autoClose: 8000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    toastClassName: '!bg-white !text-gray-800 !shadow-lg',
+                    bodyClassName: 'p-0',
+                }
+            );
+        };
+
+        return {
+            notifications,
+        };
+    },
 };
 </script>

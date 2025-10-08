@@ -18,6 +18,7 @@ class TicketController extends Controller
         
         return Inertia::render('Public/Ticket/Show', [
             'ticket' => $ticket->only([
+                'id',
                 'ticket_number',
                 'status',
                 'customer_name',
@@ -29,6 +30,8 @@ class TicketController extends Controller
                 'parking_spot',
                 'check_in_at',
                 'public_url',
+                'check_in_latitude',
+                'check_in_longitude'
             ]),
         ]);
     }

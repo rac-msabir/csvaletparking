@@ -38,6 +38,37 @@
         </div>
       </div>
 
+      <!-- Map Section -->
+      <div class="mt-8 mb-6">
+        <h3 class="font-semibold text-gray-700 mb-3">Vehicle Location</h3>
+        <div class="rounded-lg overflow-hidden border border-gray-200 h-64 relative">
+          <div id="map" class="w-full h-full"></div>
+          <div v-if="!hasLocation" class="absolute inset-0 flex items-center justify-center bg-gray-50">
+            <p class="text-gray-500">Location data not available</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row gap-4 mt-6">
+        <button 
+          @click="requestVehicle" 
+          :disabled="isRequesting || ticket.status === 'in_progress'"
+          class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <span v-if="isRequesting">Requesting...</span>
+          <span v-else>Bring My Car</span>
+        </button>
+        
+        <a 
+          :href="'https://www.google.com/maps/dir/?api=1&destination=' + ticket.check_in_latitude + ',' + ticket.check_in_longitude"
+          target="_blank"
+          class="px-6 py-3 text-center border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+        >
+          Get Directions
+        </a>
+      </div>
+
       <div class="text-center text-sm text-gray-500 mt-8">
         <p>Keep this link safe to check your vehicle status anytime</p>
         <div class="mt-2 p-2 bg-gray-100 rounded text-xs break-all">
@@ -49,8 +80,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
+import axios from 'axios';
 
 const props = defineProps({
   ticket: {
@@ -58,6 +90,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+const ticket = ref(props.ticket);
 
 const statusBadgeClass = computed(() => {
   const baseClasses = 'px-2 py-1 rounded-full text-xs font-medium';
@@ -85,6 +119,55 @@ const formatStatus = (status) => {
     .join(' ');
 };
 
+const hasLocation = computed(() => {
+  return ticket.value?.check_in_latitude && ticket.value?.check_in_longitude;
+});
+
+const isRequesting = ref(false);
+
+const initMap = () => {
+  if (!hasLocation.value) return;
+  
+  // Initialize the map
+  const map = L.map('map').setView(
+    [ticket.value.check_in_latitude, ticket.value.check_in_longitude], 
+    18 // Zoom level
+  );
+  
+  // Add OpenStreetMap tiles
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  
+  // Add a marker at the vehicle's location
+  L.marker([ticket.value.check_in_latitude, ticket.value.check_in_longitude])
+    .addTo(map)
+    .bindPopup('Your vehicle is here')
+    .openPopup();
+};
+
+const requestVehicle = async () => {
+  if (isRequesting.value || ticket.value.status === 'in_progress') return;
+  
+  isRequesting.value = true;
+  
+  try {
+    // Call your API endpoint to request the vehicle
+    await axios.post(route('api.tickets.request-vehicle', { ticket: ticket.value.id }));
+    
+    // Show success message
+    alert('Your vehicle is being prepared. Please wait at the pickup location.');
+    
+    // Update the ticket status
+    ticket.value.status = 'in_progress';
+  } catch (error) {
+    console.error('Error requesting vehicle:', error);
+    alert('Failed to request your vehicle. Please try again or contact staff for assistance.');
+  } finally {
+    isRequesting.value = false;
+  }
+};
+
 const formatDateTime = (dateTime) => {
   if (!dateTime) return 'N/A';
   
@@ -98,4 +181,24 @@ const formatDateTime = (dateTime) => {
   
   return new Date(dateTime).toLocaleString(undefined, options);
 };
+
+// Initialize the map when the component is mounted
+onMounted(() => {
+  if (hasLocation.value) {
+    // Load Leaflet CSS and JS dynamically
+    const leafletCSS = document.createElement('link');
+    leafletCSS.rel = 'stylesheet';
+    leafletCSS.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(leafletCSS);
+    
+    const leafletJS = document.createElement('script');
+    leafletJS.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    leafletJS.onload = () => {
+      // Initialize the map after Leaflet is loaded
+      window.L = L; // Make L available globally
+      initMap();
+    };
+    document.head.appendChild(leafletJS);
+  }
+});
 </script>
