@@ -30,3 +30,8 @@ Broadcast::channel('ticket.{ticketId}', function (User $user, $ticketId) {
 Broadcast::channel('user.{userId}', function (User $user, $userId) {
     return (int) $user->id === (int) $userId;
 });
+
+// Tenant employees channel
+Broadcast::channel('tenant.{tenantId}', function (User $user, $tenantId) {
+    return (int) $user->tenant_id === (int) $tenantId && $user->is_employee;
+});

@@ -183,15 +183,12 @@ const formatDateTime = (dateTime) => {
 };
 
 // Initialize Echo for real-time updates (use the global Echo instance)
-const echo = window.Echo;
+let echo = null;
 
 // Listen for ticket status updates
 const setupEchoListeners = () => {
   if (!ticket.value?.id) return null;
-  if (!echo) {
-    console.warn('Echo is not initialized yet; skipping realtime setup.');
-    return null;
-  }
+  if (!echo) return null;
   
   // Subscribe to the Laravel private channel for this ticket
   const channel = echo.private(`ticket.${ticket.value.id}`);
@@ -227,8 +224,20 @@ onUnmounted(() => {
 
 // Initialize the map when the component is mounted
 onMounted(() => {
-  // Set up Echo listeners
-  channel = setupEchoListeners();
+  const initEcho = (attempt = 0) => {
+    echo = window.Echo;
+    if (!echo) {
+      if (attempt < 10) {
+        setTimeout(() => initEcho(attempt + 1), 200);
+      } else {
+        console.warn('Echo is not initialized after retries; skipping realtime setup.');
+      }
+      return;
+    }
+    channel = setupEchoListeners();
+  };
+
+  initEcho();
   
   if (hasLocation.value) {
     // Load Leaflet CSS and JS dynamically

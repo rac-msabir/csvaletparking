@@ -5,12 +5,12 @@ namespace App\Events;
 use App\Models\Ticket;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Route;
 
-class VehicleRequested implements ShouldBroadcast
+class VehicleRequested implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -36,10 +36,15 @@ class VehicleRequested implements ShouldBroadcast
             new PrivateChannel('user.' . $this->ticket->created_by),
         ];
 
+        // Also notify the assigned employee (if any)
+        if (!empty($this->ticket->assigned_to)) {
+            $channels[] = new PrivateChannel('user.' . $this->ticket->assigned_to);
+        }
+
         // If you need to broadcast to tenant admins, uncomment and modify this:
-        // if ($this->ticket->tenant_id) {
-        //     $channels[] = new PrivateChannel('tenant.' . $this->ticket->tenant_id);
-        // }
+        if ($this->ticket->tenant_id) {
+            $channels[] = new PrivateChannel('tenant.' . $this->ticket->tenant_id);
+        }
 
         return $channels;
     }

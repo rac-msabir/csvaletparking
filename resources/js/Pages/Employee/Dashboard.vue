@@ -69,7 +69,7 @@
               <div class="bg-white shadow overflow-hidden sm:rounded-md">
                 <ul class="divide-y divide-gray-200">
                   <li v-for="ticket in recentTickets" :key="ticket.id">
-                    <Link :href="route('employee.tickets.show', ticket.id)" class="block hover:bg-gray-50">
+                    <Link :href="route('employee.tickets.show', { ticket: ticket.id })" class="block hover:bg-gray-50">
                       <div class="px-4 py-4 flex items-center sm:px-6">
                         <div class="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
                           <div class="truncate">
@@ -169,12 +169,30 @@ const showNotification = (notification) => {
 };
 
 // Set up Echo listeners
-const echo = window.Echo;
+let echoInstance = null;
 let channel = null;
 
 onMounted(() => {
-    if (echo && props.auth?.user?.id) {
-        channel = echo.private(`user.${props.auth.user.id}`);
+    const initEcho = (attempt = 0) => {
+        echoInstance = window.Echo;
+        if (!echoInstance) {
+            if (attempt < 10) {
+                setTimeout(() => initEcho(attempt + 1), 200);
+            } else {
+                console.warn('Echo is not initialized after retries; skipping realtime setup.');
+            }
+            return;
+        }
+
+        if (!props.auth?.user?.id) return;
+
+        // Subscribe to user channel
+        channel = echoInstance.private(`user.${props.auth.user.id}`);
+        if (channel && typeof channel.subscribed === 'function') {
+            channel.subscribed(() => {
+                console.debug('Echo: subscribed to', `user.${props.auth.user.id}`);
+            });
+        }
         channel.listen('.vehicle.requested', (data) => {
             showNotification({
                 title: 'Vehicle Requested',
@@ -183,14 +201,34 @@ onMounted(() => {
                 ticketId: data.ticket_id
             });
         });
-    }
+
+        // Also subscribe to tenant-wide channel for employees
+        if (props.auth?.user?.tenant_id) {
+            const tenantChannel = echoInstance.private(`tenant.${props.auth.user.tenant_id}`);
+            if (tenantChannel && typeof tenantChannel.subscribed === 'function') {
+                tenantChannel.subscribed(() => {
+                    console.debug('Echo: subscribed to', `tenant.${props.auth.user.tenant_id}`);
+                });
+            }
+            tenantChannel.listen('.vehicle.requested', (data) => {
+                showNotification({
+                    title: 'Vehicle Requested',
+                    message: data.message,
+                    url: data.url,
+                    ticketId: data.ticket_id
+                });
+            });
+        }
+    };
+
+    initEcho();
 });
 
 onUnmounted(() => {
     if (channel) {
         channel.stopListening('.vehicle.requested');
-        if (echo) {
-            echo.leave(`user.${props.auth.user?.id}`);
+        if (echoInstance) {
+            echoInstance.leave(`user.${props.auth.user?.id}`);
         }
     }
 });

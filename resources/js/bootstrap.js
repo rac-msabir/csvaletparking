@@ -23,23 +23,31 @@ const user = window.authUser || {};
 const scheme = (import.meta.env.VITE_REVERB_SCHEME || 'http').toLowerCase();
 const host = import.meta.env.VITE_REVERB_HOST || (window.location.hostname || '127.0.0.1');
 const port = Number(import.meta.env.VITE_REVERB_PORT || (scheme === 'https' ? 443 : 8080));
+const appKey = import.meta.env.VITE_REVERB_APP_KEY || '';
 
-const echo = configureEcho({
-    broadcaster: 'reverb',
-    key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: host,
-    wsPort: port,
-    wssPort: port,
-    forceTLS: scheme === 'https',
-    enabledTransports: ['ws', 'wss'],
-    auth: {
-        headers: {
-            'X-CSRF-TOKEN': csrfToken,
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${user?.access_token || ''}`,
+try {
+    console.debug('[Bootstrap] Configuring Echo', { scheme, host, port, hasKey: !!appKey });
+    const echo = configureEcho({
+        broadcaster: 'reverb',
+        key: appKey,
+        wsHost: host,
+        wsPort: port,
+        wssPort: port,
+        forceTLS: scheme === 'https',
+        enabledTransports: ['ws', 'wss'],
+        authEndpoint: '/broadcasting/auth',
+        auth: {
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+            },
         },
-    },
-});
+    });
 
-window.Echo = echo;
+    window.Echo = echo;
+    console.debug('[Bootstrap] Echo initialized');
+} catch (e) {
+    console.error('[Bootstrap] Echo initialization failed', e);
+    window.Echo = null;
+}

@@ -48,6 +48,12 @@ class Ticket extends Model
      */
     public function getPublicUrlAttribute(): string
     {
+        if (empty($this->public_token)) {
+            $this->public_token = Str::random(32);
+            // Persist the generated token so future accesses are stable
+            $this->save();
+        }
+
         return route('tickets.public.show', $this->public_token);
     }
 
