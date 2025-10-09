@@ -14,6 +14,17 @@
         @routes
         @vite(['resources/js/app.js', "resources/js/Pages/{$page['component']}.vue"])
         @inertiaHead
+        <script>
+            // Share the authenticated user's token with the Echo instance
+            @auth
+                window.authUser = @json([
+                    'id' => auth()->id(),
+                    'access_token' => auth()->user()->currentAccessToken()?->plainTextToken ?? '',
+                ]);
+            @else
+                window.authUser = null;
+            @endauth
+        </script>
     </head>
     <body class="font-sans antialiased">
         @inertia

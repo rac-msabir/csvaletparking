@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import PublicLayout from '@/Layouts/PublicLayout.vue';
 import axios from 'axios';
 
@@ -182,8 +182,54 @@ const formatDateTime = (dateTime) => {
   return new Date(dateTime).toLocaleString(undefined, options);
 };
 
+// Initialize Echo for real-time updates (use the global Echo instance)
+const echo = window.Echo;
+
+// Listen for ticket status updates
+const setupEchoListeners = () => {
+  if (!ticket.value?.id) return null;
+  if (!echo) {
+    console.warn('Echo is not initialized yet; skipping realtime setup.');
+    return null;
+  }
+  
+  // Subscribe to the Laravel private channel for this ticket
+  const channel = echo.private(`ticket.${ticket.value.id}`);
+  
+  // Listen for the TicketStatusUpdated event
+  channel.listen('TicketStatusUpdated', (e) => {
+    console.log('Ticket status updated:', e);
+    // Update the ticket status when we receive an update
+    if (e.ticket?.id === ticket.value.id) {
+      ticket.value.status = e.ticket.status;
+      
+      // If the ticket is ready, show a notification
+      if (e.ticket.status === 'ready') {
+        alert('Your vehicle is ready for pickup!');
+      }
+    }
+  });
+  
+  return channel;
+};
+
+// Clean up Echo listeners
+let channel = null;
+
+onUnmounted(() => {
+  if (channel) {
+    channel.stopListening('TicketStatusUpdated');
+    if (echo) {
+      echo.leave(`ticket.${ticket.value?.id}`);
+    }
+  }
+});
+
 // Initialize the map when the component is mounted
 onMounted(() => {
+  // Set up Echo listeners
+  channel = setupEchoListeners();
+  
   if (hasLocation.value) {
     // Load Leaflet CSS and JS dynamically
     const leafletCSS = document.createElement('link');

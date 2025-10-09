@@ -133,73 +133,70 @@
 }
 </style>
 
-<script>
+<script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, onMounted, onUnmounted } from 'vue';
 import { toast } from 'vue3-toastify';
-import { toast as toastify } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
-export default {
-    components: {
-        AppLayout,
-        Link,
-    },
-    props: {
-        stats: Object,
-        recentTickets: Array,
-        auth: Object,
-    },
-    setup(props) {
-        const notifications = ref([]);
-        let channel = null;
+const props = defineProps({
+    stats: Object,
+    recentTickets: Array,
+    auth: Object,
+});
 
-        onMounted(() => {
-            // Initialize Echo if not already available
-            if (window.Echo) {
-                // Listen for vehicle requested event
-                window.Echo.private(`user.${props.auth.user.id}`)
-                    .listen('.vehicle.requested', (data) => {
-                        showNotification({
-                            title: 'Vehicle Requested',
-                            message: data.message,
-                            url: data.url,
-                            ticketId: data.ticket_id
-                        });
-                    });
-            }
-        });
-
-        onUnmounted(() => {
-            if (channel) {
-                channel.stopListening('.vehicle.requested');
-            }
-        });
-
-        const showNotification = (notification) => {
-            toastify.info(
-                `<div class="flex flex-col">
-                    <span class="font-semibold">${notification.title}</span>
-                    <span class="text-sm">${notification.message}</span>
-                    ${notification.url ? `<a href="${notification.url}" class="text-blue-500 hover:underline mt-1 text-xs">View Details →</a>` : ''}
-                </div>`,
-                {
-                    position: 'top-right',
-                    autoClose: 8000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    toastClassName: '!bg-white !text-gray-800 !shadow-lg',
-                    bodyClassName: 'p-0',
-                }
-            );
-        };
-
-        return {
-            notifications,
-        };
-    },
+const notifications = ref([]);
+// Show notification function
+const showNotification = (notification) => {
+    toast.info(
+        `<div class="flex flex-col">
+            <span class="font-semibold">${notification.title}</span>
+            <span class="text-sm">${notification.message}</span>
+            ${notification.url ? `<a href="${notification.url}" class="text-blue-500 hover:underline mt-1 text-xs">View Details →</a>` : ''}
+        </div>`,
+        {
+            position: 'top-right',
+            autoClose: 8000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            toastClassName: '!bg-white !text-gray-800 !shadow-lg',
+            bodyClassName: 'p-0',
+        }
+    );
 };
+
+// Set up Echo listeners
+const echo = window.Echo;
+let channel = null;
+
+onMounted(() => {
+    if (echo && props.auth?.user?.id) {
+        channel = echo.private(`user.${props.auth.user.id}`);
+        channel.listen('.vehicle.requested', (data) => {
+            showNotification({
+                title: 'Vehicle Requested',
+                message: data.message,
+                url: data.url,
+                ticketId: data.ticket_id
+            });
+        });
+    }
+});
+
+onUnmounted(() => {
+    if (channel) {
+        channel.stopListening('.vehicle.requested');
+        if (echo) {
+            echo.leave(`user.${props.auth.user?.id}`);
+        }
+    }
+});
+
+
+defineExpose({
+    showNotification
+});
 </script>

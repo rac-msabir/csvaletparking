@@ -8,6 +8,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Route;
 
 class VehicleRequested implements ShouldBroadcast
 {
@@ -32,9 +33,13 @@ class VehicleRequested implements ShouldBroadcast
     {
         $channels = [
             new PrivateChannel('ticket.' . $this->ticket->id),
-            // new PrivateChannel('tenant.' . $this->ticket->tenant_id),
             new PrivateChannel('user.' . $this->ticket->created_by),
         ];
+
+        // If you need to broadcast to tenant admins, uncomment and modify this:
+        // if ($this->ticket->tenant_id) {
+        //     $channels[] = new PrivateChannel('tenant.' . $this->ticket->tenant_id);
+        // }
 
         return $channels;
     }
@@ -59,6 +64,7 @@ class VehicleRequested implements ShouldBroadcast
             'status' => $this->ticket->status,
             'requested_at' => now()->toDateTimeString(),
             'message' => 'A vehicle has been requested for ticket #' . $this->ticket->id,
+            'url' => route('employee.tickets.show', $this->ticket->id),
         ];
     }
 }
