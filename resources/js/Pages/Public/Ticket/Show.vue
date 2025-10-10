@@ -64,8 +64,9 @@
             <div class="flex items-stretch justify-between bg-indigo-50">
               <button
                 type="button"
-                @click="hasLocation ? window.open('https://www.google.com/maps/dir/?api=1&destination=' + ticket.check_in_latitude + ',' + ticket.check_in_longitude, '_blank') : null"
-                class="flex-1 text-left px-4 py-4 text-sm font-medium text-indigo-900 hover:bg-indigo-100 focus:outline-none"
+                @click="openDirections"
+                :disabled="!hasLocation"
+                class="flex-1 text-left px-4 py-4 text-sm font-medium text-indigo-900 hover:bg-indigo-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Show on map
               </button>
@@ -295,4 +296,14 @@ onMounted(() => {
     document.head.appendChild(leafletJS);
   }
 });
+
+const openDirections = () => {
+  if (!hasLocation.value) return;
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${ticket.value.check_in_latitude},${ticket.value.check_in_longitude}`;
+  if (typeof window !== 'undefined' && window && window.open) {
+    window.open(url, '_blank');
+  } else {
+    console.warn('Window is not available to open directions');
+  }
+};
 </script>
