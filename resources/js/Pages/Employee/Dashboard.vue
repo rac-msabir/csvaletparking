@@ -108,14 +108,14 @@
               <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-indigo-900/95 text-white">
                   <tr>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Ticket Number</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Status</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Customer Need Car at</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Customer Phone Number</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Total Price/Payment Status</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Car Brand</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Car Plate</th>
-                    <th class="px-6 py-3 text-left text-sm font-semibold">Note</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Ticket Number</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Status</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Customer Need Car at</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Customer Phone Number</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Total Price/Payment Status</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Car Brand</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Car Plate</th>
+                    <th class="px-6 py-3 text-left text-sm font-semibold whitespace-nowrap">Note</th>
                     <th class="px-6 py-3 text-left text-sm font-semibold"></th>
                   </tr>
                 </thead>
@@ -129,16 +129,16 @@
                     </td>
                   </tr>
                   <tr v-for="t in paginatedTickets" :key="t.id" class="odd:bg-white even:bg-gray-50">
-                    <td class="px-6 py-4 text-sm font-medium text-gray-900">{{ t.reference }}</td>
-                    <td class="px-6 py-4">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ t.reference }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
                       <button @click="openStatusModal(t)" :class="statusPillClass(t.status)" class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer">{{ t.status_label || t.status }}</button>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-700">{{ t.need_at || '-' }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-700">{{ t.customer_phone || t.customer_phone_number || '-' }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-700">{{ t.total_price ?? 'Free' }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-700">{{ t.car_brand || '-' }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-700">{{ t.car_plate || '-' }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-700">{{ t.note || '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.need_at || '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.customer_phone || t.customer_phone_number || '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.total_price ?? 'Free' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.car_brand || '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.car_plate || '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.note || '-' }}</td>
                     <td class="px-6 py-4 text-sm text-gray-700 flex items-center space-x-3"> 
                       <Link :href="route('employee.tickets.show', t.id)" class="hover:text-indigo-900">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
