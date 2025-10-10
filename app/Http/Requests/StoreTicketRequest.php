@@ -23,15 +23,15 @@ class StoreTicketRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_name' => 'required|string|max:255',
-            'customer_phone' => 'required|string|max:20',
+            'customer_name' => 'nullable|string|max:255',
+            'customer_phone' => 'nullable|string|max:20',
             'customer_email' => 'nullable|email|max:255',
-            'vehicle_make' => 'required|string|max:100',
-            'vehicle_model' => 'required|string|max:100',
-            'vehicle_color' => 'required|string|max:50',
-            'license_plate' => 'required|string|max:20',
-            'parking_spot' => 'required|string|max:50',
-            'parking_zone' => 'required|string|max:50',
+            'vehicle_make' => 'nullable|string|max:100',
+            'vehicle_model' => 'nullable|string|max:100',
+            'vehicle_color' => 'nullable|string|max:50',
+            'license_plate' => 'nullable|string|max:20',
+            'parking_spot' => 'nullable|string|max:50',
+            'parking_zone' => 'nullable|string|max:50',
             'special_instructions' => 'nullable|string',
             'damage_notes' => 'nullable|string',
             'check_in_at' => 'nullable|date',
@@ -43,14 +43,14 @@ class StoreTicketRequest extends FormRequest
             'payment_method' => ['nullable', 'string', Rule::in(['cash', 'credit_card', 'debit_card', 'mobile_payment', 'other'])],
             'payment_reference' => 'nullable|string|max:255',
             'verification_code' => 'nullable|string|max:20',
-            'check_in_latitude' => 'required|numeric|between:-90,90',
-            'check_in_longitude' => 'required|numeric|between:-180,180',
+            'check_in_latitude' => 'nullable|numeric|between:-90,90',
+            'check_in_longitude' => 'nullable|numeric|between:-180,180',
             'check_out_latitude' => 'nullable|numeric|between:-90,90',
             'check_out_longitude' => 'nullable|numeric|between:-180,180',
-            'tenant_id' => 'required|exists:tenants,id',
-            'assigned_to' => 'required|exists:users,id',
+            'tenant_id' => 'nullable|exists:tenants,id',
+            'assigned_to' => 'nullable|exists:users,id',
             'delivered_by' => 'nullable|exists:users,id',
-            'created_by' => 'required|exists:users,id',
+            'created_by' => 'nullable|exists:users,id',
         ];
     }
 
