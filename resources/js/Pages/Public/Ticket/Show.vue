@@ -38,7 +38,7 @@
         <!-- status chip -->
          <div class="flex justify-between">
            <div class="m-4">
-             <span class="inline-block px-3 py-1 text-xs rounded-md bg-rose-100 text-rose-700 border border-rose-200">{{ ticket.payment_status || 'unpaid' }}</span>
+             <span class="inline-block px-3 py-1 text-xs rounded-md bg-rose-100 text-rose-700 border border-rose-200">{{ t('ticket_payment_status') || t('unpaid') }}</span>
            </div>
            <!-- small green bar -->
            <div class="m-4 w-6 h-1 rounded-full bg-green-400"></div>
@@ -166,6 +166,7 @@ const direction = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'));
 
 const messages = {
   ar: {
+    ticket_payment_status: 'حالة الدفع',
     ticket_creation_date: 'تاريخ إنشاء التذكرة',
     ticket_details: 'تفاصيل التذكرة',
     phone: 'رقم هاتف العميل',
@@ -183,6 +184,7 @@ const messages = {
     ,bring_car: 'أحضر السيارة'
   },
   en: {
+    ticket_payment_status: 'Status',
     ticket_creation_date: 'Ticket creation date',
     ticket_details: 'Ticket Details',
     phone: 'Customer phone number',
