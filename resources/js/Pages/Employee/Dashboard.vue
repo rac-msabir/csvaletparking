@@ -133,7 +133,7 @@
                     <td class="px-6 py-4 whitespace-nowrap">
                       <button @click="openStatusModal(t)" :class="statusPillClass(t.status)" class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer uppercase">{{ displayStatus(t.status) }}</button>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.need_at || '-' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ formatDateTime(t.need_at) }}</td>
                     <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.customer_phone || t.customer_phone_number || '-' }}</td>
                     <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.total_price ?? 'Free' }}</td>
                     <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.car_brand || '-' }}</td>
@@ -376,6 +376,16 @@ const badgeClass = (s) => {
 };
 
 // Human-friendly labels for statuses
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return '-';
+  const date = new Date(dateTime);
+  return date.toLocaleString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+
 const displayStatus = (s) => {
   const v = String(s || '').toLowerCase();
   if (v === 'pending') return 'CAR PARKED';

@@ -55,7 +55,7 @@ class DashboardController extends Controller
                     'reference' => $reference,
                     'status' => $ticket->status,
                     'status_label' => $ticket->status_label,
-                    'need_at' => $needAt,
+                    'need_at' => $ticket->need_at,
                     'customer_phone' => $ticket->customer_phone,
                     'total_price' => $totalPrice ? ($totalPrice . ($ticket->payment_status ? (' / ' . ucfirst($ticket->payment_status)) : '')) : 'Free',
                     'car_brand' => $ticket->vehicle_make,

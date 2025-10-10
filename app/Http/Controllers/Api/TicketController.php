@@ -17,6 +17,7 @@ class TicketController extends Controller
         // Update the ticket status to 'in_progress'
         $ticket->update([
             'status' => 'in_progress',
+            'need_at' => now(),
         ]);
 
         // Dispatch the VehicleRequested event
