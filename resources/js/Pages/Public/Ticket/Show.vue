@@ -38,7 +38,7 @@
         <!-- status chip -->
          <div class="flex justify-between">
            <div class="m-4">
-             <span class="inline-block px-3 py-1 text-xs rounded-md bg-rose-100 text-rose-700 border border-rose-200">{{ t('ticket_payment_status') || t('unpaid') }}</span>
+             <span class="inline-block px-3 py-1 text-xs rounded-md bg-rose-100 text-rose-700 border border-rose-200">{{ displayStatus(ticket.status) }}</span>
            </div>
            <!-- small green bar -->
            <div class="m-4 w-6 h-1 rounded-full bg-green-400"></div>
@@ -236,6 +236,16 @@ const formatStatus = (status) => {
     .join(' ');
 };
 
+const displayStatus = (s) => {
+  const v = String(s || '').toLowerCase();
+  if (v === 'pending') return 'CAR PARKED';
+  if (v === 'in_progress') return 'CAR REQUESTED';
+  if (v === 'ready') return 'CAR READY BY EMPLOYEE';
+  if (v === 'delivered') return 'CAR DELIVERED BY EMPLOYEE';
+  if (v === 'cancelled' || v === 'canceled') return 'CANCELLED';
+  return formatStatus(v).toUpperCase();
+};
+
 const hasLocation = computed(() => {
   return ticket.value?.check_in_latitude && ticket.value?.check_in_longitude;
 });
@@ -264,7 +274,7 @@ const initMap = () => {
 };
 
 const requestVehicle = async () => {
-  if (isRequesting.value || ticket.value.status === 'in_progress') return;
+  if (isRequesting.value || ticket.value.status !== 'pending') return;
   
   isRequesting.value = true;
   

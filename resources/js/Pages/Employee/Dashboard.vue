@@ -131,7 +131,7 @@
                   <tr v-for="t in paginatedTickets" :key="t.id" class="odd:bg-white even:bg-gray-50">
                     <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ t.reference }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <button @click="openStatusModal(t)" :class="statusPillClass(t.status)" class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer">{{ t.status_label || t.status }}</button>
+                      <button @click="openStatusModal(t)" :class="statusPillClass(t.status)" class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer uppercase">{{ displayStatus(t.status) }}</button>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.need_at || '-' }}</td>
                     <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.customer_phone || t.customer_phone_number || '-' }}</td>
@@ -355,10 +355,35 @@ const toggleSort = () => {
 /* Pills */
 const statusPillClass = (s) => {
   const v = String(s || '').toLowerCase();
+  if (v.includes('pending')) return 'bg-amber-100 text-amber-700';
+  if (v.includes('in_progress')) return 'bg-blue-100 text-blue-700';
   if (v.includes('ready')) return 'bg-fuchsia-100 text-fuchsia-700';
+  if (v.includes('delivered')) return 'bg-emerald-100 text-emerald-700';
   if (v.includes('deliver')) return 'bg-emerald-100 text-emerald-700';
-  if (v.includes('request')) return 'bg-amber-100 text-amber-700';
+  if (v.includes('cancelled')) return 'bg-rose-100 text-rose-700';
   return 'bg-gray-100 text-gray-700';
+};
+
+// Badge style consistent with public ticket page badges
+const badgeClass = (s) => {
+  const v = String(s || '').toLowerCase();
+  if (v === 'pending') return 'bg-amber-100 text-amber-700 border border-amber-200';
+  if (v === 'in_progress' || v.includes('progress')) return 'bg-blue-100 text-blue-700 border border-blue-200';
+  if (v === 'ready') return 'bg-fuchsia-100 text-fuchsia-700 border border-fuchsia-200';
+  if (v === 'delivered') return 'bg-emerald-100 text-emerald-700 border border-emerald-200';
+  if (v === 'cancelled' || v === 'canceled') return 'bg-rose-100 text-rose-700 border border-rose-200';
+  return 'bg-gray-100 text-gray-700 border border-gray-200';
+};
+
+// Human-friendly labels for statuses
+const displayStatus = (s) => {
+  const v = String(s || '').toLowerCase();
+  if (v === 'pending') return 'CAR PARKED';
+  if (v === 'in_progress') return 'CAR REQUESTED BY CUSTOMER';
+  if (v === 'ready') return 'CAR READY BY EMPLOYEE';
+  if (v === 'delivered') return 'CAR DELIVERED BY EMPLOYEE';
+  if (v === 'cancelled' || v === 'canceled') return 'CANCELLED';
+  return (s || '').toString().replaceAll('_', ' ').toUpperCase();
 };
 
 const tabClass = (tab) => `pb-3 border-b-2 ${activeTab.value===tab ? 'border-indigo-700 text-indigo-700 font-semibold' : 'border-transparent text-gray-500 hover:text-gray-700'}`;
