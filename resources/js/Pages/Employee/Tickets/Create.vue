@@ -5,15 +5,7 @@
       <div class="bg-white shadow">
         <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h2 class="text-lg font-medium text-gray-900">Create New Ticket</h2>
-          <div class="flex space-x-3">
-            <Link :href="route('employee.dashboard')" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-              Cancel
-            </Link>
-            <button type="submit" form="ticket-form" :disabled="form.processing" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
-              <span v-if="form.processing">Processing...</span>
-              <span v-else>Save & Create Ticket</span>
-            </button>
-          </div>
+         
         </div>
       </div>
 
@@ -260,13 +252,12 @@
                 >
                   Download QR
                 </button>
-                <button
-                  type="button"
-                  class="col-span-2 mt-3 inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:text-sm"
-                  @click="showQRModal = false"
+                <Link 
+                  :href="route('employee.dashboard')"
+                  class="col-span-2 mt-3 inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:text-sm text-center"
                 >
-                  Close
-                </button>
+                  Close & Go to Dashboard
+                </Link>
               </div>
             </div>
           </TransitionChild>
