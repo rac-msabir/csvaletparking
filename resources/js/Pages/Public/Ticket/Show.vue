@@ -1,6 +1,6 @@
 <template>
   <PublicLayout>
-    <div class="max-w-3xl mx-auto px-4 py-6">
+    <div class="max-w-3xl mx-auto px-4 py-6 pb-28">
       <!-- Ticket creation date (top-right) -->
       <div class="flex justify-end mb-3">
         <div class="text-sm text-gray-700">Ticket creation date: <span class="font-medium">{{ formatDateTime(ticket.check_in_at) }}</span></div>
@@ -36,21 +36,21 @@
 
         <!-- Details grid -->
         <div class="px-5 mt-4">
-          <div class="grid grid-cols-2 gap-y-6">
-            <div class="text-sm text-gray-500">Customer phone number</div>
-            <div class="text-sm text-gray-500">Customer name</div>
-            <div class="text-gray-700">{{ ticket.customer_phone || '-' }}</div>
-            <div class="text-gray-700">{{ ticket.customer_name || '-' }}</div>
+          <div class="grid grid-cols-2 gap-y-3 gap-x-4">
+            <div class="text-sm font-bold text-gray-500">Customer phone number</div>
+            <div class="text-sm font-bold text-gray-500">Customer name</div>
+            <div class="text-gray-700 text-sm">{{ ticket.customer_phone || '-' }}</div>
+            <div class="text-gray-700 text-sm">{{ ticket.customer_name || '-' }}</div>
 
-            <div class="text-sm text-gray-500">Car model</div>
-            <div class="text-sm text-gray-500">car company</div>
-            <div class="text-gray-700">{{ ticket.vehicle_model || '-' }}</div>
-            <div class="text-gray-700">{{ ticket.vehicle_make || ticket.vehicle_company || '-' }}</div>
+            <div class="text-sm font-bold text-gray-500">Car model</div>
+            <div class="text-sm font-bold text-gray-500">car company</div>
+            <div class="text-gray-700 text-sm">{{ ticket.vehicle_model || '-' }}</div>
+            <div class="text-gray-700 text-sm">{{ ticket.vehicle_make || ticket.vehicle_company || '-' }}</div>
 
-            <div class="text-sm text-gray-500">The company</div>
-            <div class="text-sm text-gray-500">car plate</div>
-            <div class="text-gray-700">{{ ticket.company || '-' }}</div>
-            <div class="text-gray-700">{{ ticket.license_plate || '-' }}</div>
+            <div class="text-sm font-bold text-gray-500">The company</div>
+            <div class="text-sm font-bold text-gray-500">car plate</div>
+            <div class="text-gray-700 text-sm">{{ ticket.company || '-' }}</div>
+            <div class="text-gray-700 text-sm">{{ ticket.license_plate || '-' }}</div>
           </div>
         </div>
 
@@ -76,7 +76,7 @@
                     <div class="text-xs text-gray-500">{{ ticket.branch_name || '-' }}</div>
                   </div>
                   <div class="w-8 h-8 rounded-full bg-indigo-200/60 ring-1 ring-indigo-300 flex items-center justify-center">
-                    <span class="text-indigo-800">⬡</span>
+                    <span class="text-indigo-800 text-xl font-medium">⬡</span>
                   </div>
                 </div>
               </div>
@@ -100,16 +100,18 @@
         </span>
       </div>
 
-      <!-- Primary action button -->
-      <div class="mt-6">
-        <button
-          @click="requestVehicle"
-          :disabled="isRequesting || ticket.status === 'in_progress'"
-          class="w-full h-14 rounded-xl bg-[#0f2551] text-white text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <span v-if="isRequesting">Requesting...</span>
-          <span v-else>Bring the car</span>
-        </button>
+      <!-- Fixed bottom action bar -->
+      <div class="fixed inset-x-0 bottom-0 z-50 bg-white/90 backdrop-blur border-t">
+        <div class="max-w-3xl mx-auto px-4 py-3">
+          <button
+            @click="requestVehicle"
+            :disabled="isRequesting || ticket.status === 'in_progress'"
+            class="w-full h-14 rounded-xl bg-[#0f2551] text-white text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span v-if="isRequesting">Requesting...</span>
+            <span v-else>Bring the car</span>
+          </button>
+        </div>
       </div>
     </div>
   </PublicLayout>
