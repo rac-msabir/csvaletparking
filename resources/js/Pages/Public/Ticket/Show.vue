@@ -66,7 +66,7 @@
                 type="button"
                 @click="openDirections"
                 :disabled="!hasLocation"
-                class="flex-1 text-left px-4 py-4 text-sm font-medium text-indigo-900 hover:bg-indigo-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                class="flex-1 text-left px-4 py-4 text-md font-bold text-indigo-900 hover:bg-indigo-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Show on map
               </button>
@@ -74,11 +74,11 @@
               <div class="flex-1 px-4 py-3">
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="text-sm font-medium text-gray-800">Branch location</div>
+                    <div class="text-md font-bold text-gray-800">Branch location</div>
                     <div class="text-xs text-gray-500">{{ ticket.branch_name || '-' }}</div>
                   </div>
                   <div class="w-8 h-8 rounded-full bg-indigo-200/60 ring-1 ring-indigo-300 flex items-center justify-center">
-                    <span class="text-indigo-800 text-xl font-medium">⬡</span>
+                    <span class="text-indigo-800 text-xl font-bold">⬡</span>
                   </div>
                 </div>
               </div>
