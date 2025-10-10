@@ -2,7 +2,7 @@
   <PublicLayout>
     <!-- Indigo Header with Logo and Language Dropdown -->
     <div class="w-full bg-[#0f2551]  text-white">
-      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between" :dir="direction">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center font-bold">UV</div>
           <div class="font-semibold tracking-wide">UR VALET</div>
@@ -27,7 +27,7 @@
       </div>
     </div>
     <div class="max-w-3xl mx-auto px-4 py-6 pb-28" :dir="direction">
-      
+
       <!-- Ticket creation date (top-right) -->
       <div class="flex justify-end mb-3">
         <div class="text-sm text-gray-700">{{ t('ticket_creation_date') }}: <span class="font-medium">{{ formatDateTime(ticket.check_in_at) }}</span></div>
