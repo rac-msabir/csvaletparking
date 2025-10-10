@@ -122,6 +122,18 @@ class TicketController extends Controller
     /**
      * Display the specified ticket.
      */
+    public function show(Ticket $ticket)
+    {
+        // Ensure the ticket is assigned to the current employee
+        if ($ticket->assigned_to !== auth()->id()) {
+            abort(403, 'You are not authorized to view this ticket.');
+        }
+
+        return Inertia::render('Employee/Tickets/Show', [
+            'ticket' => $ticket,
+        ]);
+    }
+
     public function destroy(Ticket $ticket)
     {
         //
