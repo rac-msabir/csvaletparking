@@ -14,6 +14,8 @@ use BaconQrCode\Renderer\Image\SvgImageBackEnd;
 use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 
 class TicketController extends Controller
@@ -120,18 +122,67 @@ class TicketController extends Controller
     /**
      * Display the specified ticket.
      */
-    public function show(Ticket $ticket)
+    public function destroy(Ticket $ticket)
     {
+        //
+    }
+
+    /**
+     * Update the status of the specified ticket.
+     */
+    public function updateStatus(Request $request, Ticket $ticket)
+    {
+        $request->validate([
+            'status' => 'required|in:pending,ready,delivered',
+        ]);
+
         // Ensure the ticket is assigned to the current employee
         if ($ticket->assigned_to !== Auth::id()) {
-            abort(403);
+            return response()->json([
+                'message' => 'You are not authorized to update this ticket.',
+            ], 403);
         }
 
-        $ticket->load(['images']);
-        
-        return Inertia::render('Employee/Tickets/Show', [
-            'ticket' => $ticket,
-        ]);
+        DB::beginTransaction();
+        try {
+            $status = $request->status;
+            $updates = ['status' => $status];
+
+            // Update timestamps based on status
+            if ($status === 'ready') {
+                $updates['ready_at'] = now();
+            } elseif ($status === 'delivered') {
+                $updates['delivered_at'] = now();
+            }
+
+            $ticket->update($updates);
+
+            // Log the status update
+            activity()
+                ->causedBy(Auth::user())
+                ->performedOn($ticket)
+                ->withProperties([
+                    'status' => $status,
+                    'ip' => $request->ip(),
+                    'user_agent' => $request->userAgent(),
+                ])
+                ->log('updated ticket status');
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'Ticket status updated successfully',
+                'ticket' => $ticket->fresh(),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error updating ticket status: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Failed to update ticket status',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 
     /**

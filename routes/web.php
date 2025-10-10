@@ -96,6 +96,7 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/tickets/{ticket}', [TenantTicketController::class, 'update'])
                 ->name('tickets.update');
 
+
             // Employee tasks API
             Route::get('/tasks', [EmployeeDashboardController::class, 'tasks'])
                 ->name('tasks');
@@ -134,6 +135,9 @@ Route::middleware(['auth'])->group(function () {
 
             Route::put('/tickets/{ticket}', [EmployeeTicketController::class, 'update'])
                 ->name('tickets.update');
+
+            Route::post('/tickets/{ticket}/status', [EmployeeTicketController::class, 'updateStatus'])
+                ->name('tickets.status.update');
 
             // Employee tasks API
             Route::get('/tasks', [EmployeeDashboardController::class, 'tasks'])

@@ -419,9 +419,31 @@ const statusModalOpen = ref(false);
 const selectedStatus = ref('ready');
 const activeTicket = ref(null);
 const openStatusModal = (t) => { activeTicket.value = t; statusModalOpen.value = true; };
-const submitStatus = () => {
-  statusModalOpen.value = false;
-  toast.success('Ticket status updated successfully!');
+const submitStatus = async () => {
+  if (!activeTicket.value) return;
+  
+  try {
+    // Call the web route to update the ticket status
+    const response = await axios.post(route('employee.tickets.status.update', { 
+      ticket: activeTicket.value.id 
+    }), {
+      status: selectedStatus.value
+    });
+    
+    // Update the ticket in the local state
+    const updatedTicket = response.data.ticket;
+    const index = filteredTickets.value.findIndex(t => t.id === updatedTicket.id);
+    if (index !== -1) {
+      filteredTickets.value[index] = { ...filteredTickets.value[index], ...updatedTicket };
+    }
+    
+    statusModalOpen.value = false;
+    toast.success('Ticket status updated successfully!');
+  } catch (error) {
+    console.error('Error updating ticket status:', error);
+    const errorMessage = error.response?.data?.message || 'Failed to update ticket status. Please try again.';
+    toast.error(errorMessage);
+  }
 };
 
 /* QR modal */
