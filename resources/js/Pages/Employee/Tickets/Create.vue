@@ -361,6 +361,12 @@ const generateQRCode = async (ticket) => {
       id: ticket.id,
       ticket_number: ticket.ticket_number,
       customer_name: ticket.customer_name,
+      vehicle_make: ticket.vehicle_make,
+      vehicle_model: ticket.vehicle_model,
+      vehicle_color: ticket.vehicle_color,
+      license_plate: ticket.license_plate,
+      parking_spot: ticket.parking_spot,
+      notes: ticket.notes,
       created_at: new Date().toISOString(),
     };
 
