@@ -131,7 +131,14 @@
                   <tr v-for="t in paginatedTickets" :key="t.id" class="odd:bg-white even:bg-gray-50">
                     <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ t.reference }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
-                      <button @click="openStatusModal(t)" :class="statusPillClass(t.status)" class="px-3 py-1 rounded-full text-xs font-semibold cursor-pointer uppercase">{{ displayStatus(t.status) }}</button>
+                      <button 
+                        @click="t.status !== 'delivered' && openStatusModal(t)" 
+                        :class="[statusPillClass(t.status), t.status === 'delivered' ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer']" 
+                        class="px-3 py-1 rounded-full text-xs font-semibold uppercase"
+                        :disabled="t.status === 'delivered'"
+                      >
+                        {{ displayStatus(t.status) }}
+                      </button>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ formatDateTime(t.need_at) }}</td>
                     <td class="px-6 py-4 text-sm text-gray-700 whitespace-nowrap">{{ t.customer_phone || t.customer_phone_number || '-' }}</td>
@@ -227,27 +234,44 @@
       <div class="absolute inset-0 bg-black/40" @click="statusModalOpen=false"></div>
       <div class="relative w-full max-w-md mx-auto bg-white rounded-2xl shadow-xl">
         <div class="px-6 py-4 flex items-center justify-between border-b">
-          <h3 class="text-lg font-semibold text-gray-800">SELECT STATUS</h3>
+          <h3 class="text-lg font-semibold text-gray-800">UPDATE TICKET STATUS</h3>
           <button class="text-red-500" @click="statusModalOpen=false">✕</button>
         </div>
         <div class="px-6 py-6 space-y-3">
-          <label class="flex items-center justify-between p-4 rounded-xl border cursor-pointer" :class="selectedStatus==='ready' ? 'border-fuchsia-500 bg-fuchsia-50' : 'border-gray-200'">
-            <div class="flex items-center space-x-3">
-              <span class="h-3 w-3 rounded-full bg-fuchsia-600"></span>
-              <span class="text-fuchsia-700 font-medium">Car Ready By Employee</span>
-            </div>
-            <input type="radio" class="hidden" value="ready" v-model="selectedStatus" />
-          </label>
-          <label class="flex items-center justify-between p-4 rounded-xl border cursor-pointer" :class="selectedStatus==='delivered' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'">
-            <div class="flex items-center space-x-3">
-              <span class="h-3 w-3 rounded-full bg-emerald-600"></span>
-              <span class="text-emerald-700 font-medium">Car Delivered By Employee</span>
-            </div>
-            <input type="radio" class="hidden" value="delivered" v-model="selectedStatus" />
-          </label>
+          <template v-if="activeTicket?.status === 'pending' || activeTicket?.status === 'in_progress'">
+            <label class="flex items-center justify-between p-4 rounded-xl border cursor-pointer" :class="selectedStatus==='ready' ? 'border-fuchsia-500 bg-fuchsia-50' : 'border-gray-200'" @click="selectedStatus = 'ready'">
+              <div class="flex items-center space-x-3">
+                <span class="h-3 w-3 rounded-full bg-fuchsia-600"></span>
+                <span class="text-fuchsia-700 font-medium">Car Ready By Employee</span>
+              </div>
+              <input type="radio" class="hidden" value="ready" v-model="selectedStatus" />
+            </label>
+            <label class="flex items-center justify-between p-4 rounded-xl border cursor-pointer" :class="selectedStatus==='delivered' ? 'border-emerald-500 bg-emerald-50' : 'border-gray-200'" @click="selectedStatus = 'delivered'">
+              <div class="flex items-center space-x-3">
+                <span class="h-3 w-3 rounded-full bg-emerald-600"></span>
+                <span class="text-emerald-700 font-medium">Car Delivered By Employee</span>
+              </div>
+              <input type="radio" class="hidden" value="delivered" v-model="selectedStatus" />
+            </label>
+          </template>
+          <template v-else-if="activeTicket?.status === 'ready'">
+            <label class="flex items-center justify-between p-4 rounded-xl border cursor-pointer border-emerald-500 bg-emerald-50" @click="selectedStatus = 'delivered'">
+              <div class="flex items-center space-x-3">
+                <span class="h-3 w-3 rounded-full bg-emerald-600"></span>
+                <span class="text-emerald-700 font-medium">Car Delivered By Employee</span>
+              </div>
+              <input type="radio" class="hidden" value="delivered" v-model="selectedStatus" checked />
+            </label>
+          </template>
         </div>
         <div class="px-6 pb-6">
-          <button class="w-full h-12 rounded-full bg-indigo-700 text-white hover:bg-indigo-800" @click="submitStatus">Submit</button>
+          <button 
+            class="w-full h-12 rounded-full bg-indigo-700 text-white hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed" 
+            @click="submitStatus"
+            :disabled="!selectedStatus"
+          >
+            Update Status
+          </button>
         </div>
       </div>
     </div>
@@ -418,7 +442,16 @@ const applyReport = () => {
 const statusModalOpen = ref(false);
 const selectedStatus = ref('ready');
 const activeTicket = ref(null);
-const openStatusModal = (t) => { activeTicket.value = t; statusModalOpen.value = true; };
+const openStatusModal = (t) => { 
+  activeTicket.value = t; 
+  // Set default status based on current ticket status
+  if (t.status === 'pending') {
+    selectedStatus.value = 'ready';
+  } else if (t.status === 'ready') {
+    selectedStatus.value = 'delivered';
+  }
+  statusModalOpen.value = true; 
+};
 const submitStatus = async () => {
   if (!activeTicket.value) return;
   
