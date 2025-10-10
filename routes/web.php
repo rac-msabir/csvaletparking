@@ -136,6 +136,9 @@ Route::middleware(['auth'])->group(function () {
             Route::put('/tickets/{ticket}', [EmployeeTicketController::class, 'update'])
                 ->name('tickets.update');
 
+            Route::get('/tickets/{ticket}/print', [EmployeeTicketController::class, 'print'])
+                ->name('tickets.print');
+
             Route::post('/tickets/{ticket}/status', [EmployeeTicketController::class, 'updateStatus'])
                 ->name('tickets.status.update');
 

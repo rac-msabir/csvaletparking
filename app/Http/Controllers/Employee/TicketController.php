@@ -140,6 +140,22 @@ class TicketController extends Controller
     }
 
     /**
+     * Display a printable version of the ticket.
+     */
+    public function print(Ticket $ticket)
+    {
+        // Ensure the ticket is assigned to the current employee
+        if ($ticket->assigned_to !== Auth::id()) {
+            abort(403, 'You are not authorized to view this ticket.');
+        }
+
+        return view('tickets.print', [
+            'ticket' => $ticket,
+            'qrCodeUrl' => $ticket->qr_code_path ? Storage::url($ticket->qr_code_path) : null,
+        ]);
+    }
+
+    /**
      * Update the status of the specified ticket.
      */
     public function updateStatus(Request $request, Ticket $ticket)

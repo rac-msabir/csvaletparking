@@ -479,10 +479,6 @@ const submitStatus = async () => {
   }
 };
 
-/* QR modal */
-const qrModalOpen = ref(false);
-const placeholderQr = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><rect width="160" height="160" fill="white"/><rect x="10" y="10" width="20" height="20" fill="black"/><rect x="130" y="10" width="20" height="20" fill="black"/><rect x="10" y="130" width="20" height="20" fill="black"/><rect x="70" y="70" width="20" height="20" fill="black"/></svg>';
-
 /* Notifications (kept from original) */
 const notifications = ref([]);
 const showNotification = (notification) => {
@@ -522,6 +518,10 @@ onUnmounted(() => {
     if (echoInstance) echoInstance.leave(`user.${props.auth.user?.id}`);
   }
 });
+
+const printTicket = (ticket) => {
+  window.open(route('employee.tickets.print', { ticket: ticket.id }), '_blank' , 'width=800,height=600');
+};
 
 defineExpose({ showNotification });
 </script>
