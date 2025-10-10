@@ -1,6 +1,7 @@
 <template>
   <PublicLayout>
-    <div class="max-w-3xl mx-auto px-4 py-6 pb-28">
+    <!-- dir="rtl" -->
+    <div class="max-w-3xl mx-auto px-4 py-6 pb-28" >
       <!-- Ticket creation date (top-right) -->
       <div class="flex justify-end mb-3">
         <div class="text-sm text-gray-700">Ticket creation date: <span class="font-medium">{{ formatDateTime(ticket.check_in_at) }}</span></div>
@@ -21,12 +22,12 @@
         <div class="px-5 pt-6 pb-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-gray-500">›</span>
-              <span class="text-gray-500">#</span>
-              <h2 class="text-base font-semibold text-gray-800">Ticket Details</h2>
+              <span class="text-gray-500 text-lg">›</span>
+              <span class="text-gray-500 text-lg">#</span>
+              <h2 class="text-lg font-semibold text-gray-800">Ticket Details</h2>
             </div>
             <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center ring-1 ring-gray-200">
-              <span class="text-gray-400 text-sm">📷</span>
+              <span class="text-gray-400 text-lg">📷</span>
             </div>
           </div>
         </div>
@@ -36,19 +37,19 @@
 
         <!-- Details grid -->
         <div class="px-5 mt-4">
-          <div class="grid grid-cols-2 gap-y-3 gap-x-4">
-            <div class="text-sm font-bold text-gray-500">Customer phone number</div>
-            <div class="text-sm font-bold text-gray-500">Customer name</div>
+          <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-right">
+            <div class="text-md font-bold text-gray-500">Customer phone number</div>
+            <div class="text-md font-bold text-gray-500">Customer name</div>
             <div class="text-gray-700 text-sm">{{ ticket.customer_phone || '-' }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.customer_name || '-' }}</div>
 
-            <div class="text-sm font-bold text-gray-500">Car model</div>
-            <div class="text-sm font-bold text-gray-500">car company</div>
+            <div class="text-md font-bold text-gray-500">Car model</div>
+            <div class="text-md font-bold text-gray-500">car company</div>
             <div class="text-gray-700 text-sm">{{ ticket.vehicle_model || '-' }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.vehicle_make || ticket.vehicle_company || '-' }}</div>
 
-            <div class="text-sm font-bold text-gray-500">The company</div>
-            <div class="text-sm font-bold text-gray-500">car plate</div>
+            <div class="text-md font-bold text-gray-500">The company</div>
+            <div class="text-md font-bold text-gray-500">car plate</div>
             <div class="text-gray-700 text-sm">{{ ticket.company || '-' }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.license_plate || '-' }}</div>
           </div>
