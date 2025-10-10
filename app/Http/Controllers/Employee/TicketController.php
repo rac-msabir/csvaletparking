@@ -215,27 +215,23 @@ class TicketController extends Controller
     /**
      * Update the specified ticket in storage.
      */
-    public function update(Request $request, Ticket $ticket)
-    {
-        // Ensure the ticket is assigned to the current employee
-        // if ($ticket->assigned_to !== Auth::id()) {
-        //     abort(403);
-        // }
+/**
+ * Update the specified ticket in storage.
+ */
+public function update(StoreTicketRequest $request, Ticket $ticket)
+{
+    // Ensure the ticket is assigned to the current employee
+    // if ($ticket->assigned_to !== Auth::id()) {
+    //     abort(403);
+    // }
 
-        $validated = $request->validate([
-            'status' => 'required|in:pending,open,in_progress,completed,cancelled',
-            'notes' => 'nullable|string',
-        ]);
+    $validated = $request->validated();
 
-        // Update the ticket status
-        $ticket->update([
-            'status' => $validated['status'],
-            'notes' => $validated['notes'] ?? $ticket->notes,
-            'completed_at' => $validated['status'] === 'completed' ? now() : null,
-        ]);
+    // Update the ticket with validated data
+    $ticket->update($validated);
 
-        return redirect()->route('employee.tickets.index')
-            ->with('success', 'Ticket updated successfully.');
-    }
+    return redirect()->route('employee.tickets.show', $ticket)
+        ->with('success', 'Ticket updated successfully.');
+}
 
 }
