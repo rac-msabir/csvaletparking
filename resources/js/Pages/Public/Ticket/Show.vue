@@ -1,10 +1,36 @@
 <template>
   <PublicLayout>
-    <!-- dir="rtl" -->
-    <div class="max-w-3xl mx-auto px-4 py-6 pb-28" >
+    <!-- Indigo Header with Logo and Language Dropdown -->
+    <div class="w-full bg-[#0f2551]  text-white">
+      <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center font-bold">UV</div>
+          <div class="font-semibold tracking-wide">UR VALET</div>
+        </div>
+        <div class="relative" @keydown.escape="showLangMenu = false">
+          <button @click="toggleLangMenu" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 focus:outline-none">
+            <span v-if="locale === 'ar'">🇸🇦</span>
+            <span v-else>🇺🇸</span>
+            <span class="text-sm">{{ locale === 'ar' ? 'العربية' : 'English' }}</span>
+          </button>
+          <div v-if="showLangMenu" class="absolute right-0 mt-2 w-40 bg-white text-gray-800 rounded-md shadow-lg overflow-hidden z-50">
+            <button @click="setLocale('ar')" class="w-full text-right px-3 py-2 hover:bg-gray-50 flex items-center justify-between">
+              <span>العربية</span>
+              <span>🇸🇦</span>
+            </button>
+            <button @click="setLocale('en')" class="w-full text-right px-3 py-2 hover:bg-gray-50 flex items-center justify-between">
+              <span>English</span>
+              <span>🇺🇸</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="max-w-3xl mx-auto px-4 py-6 pb-28" :dir="direction">
+      
       <!-- Ticket creation date (top-right) -->
       <div class="flex justify-end mb-3">
-        <div class="text-sm text-gray-700">Ticket creation date: <span class="font-medium">{{ formatDateTime(ticket.check_in_at) }}</span></div>
+        <div class="text-sm text-gray-700">{{ t('ticket_creation_date') }}: <span class="font-medium">{{ formatDateTime(ticket.check_in_at) }}</span></div>
       </div>
 
       <!-- Main Card -->
@@ -24,7 +50,7 @@
             <div class="flex items-center gap-2">
               <span class="text-gray-500 text-lg">›</span>
               <span class="text-gray-500 text-lg">#</span>
-              <h2 class="text-lg font-semibold text-gray-800">Ticket Details</h2>
+              <h2 class="text-lg font-semibold text-gray-800">{{ t('ticket_details') }}</h2>
             </div>
             <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center ring-1 ring-gray-200">
               <span class="text-gray-400 text-lg">📷</span>
@@ -37,19 +63,19 @@
 
         <!-- Details grid -->
         <div class="px-5 mt-4">
-          <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-right">
-            <div class="text-md font-bold text-gray-500">Customer phone number</div>
-            <div class="text-md font-bold text-gray-500">Customer name</div>
+          <div class="grid grid-cols-2 gap-y-3 gap-x-4" :class="locale === 'ar' ? 'text-right' : 'text-left'">
+            <div class="text-md font-bold text-gray-500">{{ t('phone') }}</div>
+            <div class="text-md font-bold text-gray-500">{{ t('name') }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.customer_phone || '-' }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.customer_name || '-' }}</div>
 
-            <div class="text-md font-bold text-gray-500">Car model</div>
-            <div class="text-md font-bold text-gray-500">car company</div>
+            <div class="text-md font-bold text-gray-500">{{ t('car_model') }}</div>
+            <div class="text-md font-bold text-gray-500">{{ t('car_company') }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.vehicle_model || '-' }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.vehicle_make || ticket.vehicle_company || '-' }}</div>
 
-            <div class="text-md font-bold text-gray-500">The company</div>
-            <div class="text-md font-bold text-gray-500">car plate</div>
+            <div class="text-md font-bold text-gray-500">{{ t('company') }}</div>
+            <div class="text-md font-bold text-gray-500">{{ t('plate') }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.company || '-' }}</div>
             <div class="text-gray-700 text-sm">{{ ticket.license_plate || '-' }}</div>
           </div>
@@ -66,15 +92,15 @@
                 type="button"
                 @click="openDirections"
                 :disabled="!hasLocation"
-                class="flex-1 text-left px-4 py-4 text-md font-bold text-indigo-900 hover:bg-indigo-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="['flex-1', locale === 'ar' ? 'text-right' : 'text-left', 'px-4', 'py-4', 'text-md', 'font-bold', 'text-indigo-900', 'hover:bg-indigo-100', 'focus:outline-none', 'disabled:opacity-50', 'disabled:cursor-not-allowed']"
               >
-                Show on map
+                {{ t('show_on_map') }}
               </button>
               <div class="w-px bg-indigo-100"></div>
               <div class="flex-1 px-4 py-3">
                 <div class="flex items-center justify-between">
                   <div>
-                    <div class="text-md font-bold text-gray-800">Branch location</div>
+                    <div class="text-md font-bold text-gray-800">{{ t('branch_location') }}</div>
                     <div class="text-xs text-gray-500">{{ ticket.branch_name || '-' }}</div>
                   </div>
                   <div class="w-8 h-8 rounded-full bg-indigo-200/60 ring-1 ring-indigo-300 flex items-center justify-center">
@@ -94,9 +120,9 @@
 
       <!-- Terms and security note -->
       <div class="mt-6 text-sm text-gray-600 flex items-center flex-wrap gap-x-3 gap-y-2">
-        <a href="#" class="underline">Terms and Conditions</a>
-        <a href="#" class="underline">Fully safe and secure</a>
-        <span>Your Valley platform</span>
+        <a href="#" class="underline">{{ t('terms') }}</a>
+        <a href="#" class="underline">{{ t('secure') }}</a>
+        <span>{{ t('platform') }}</span>
         <span class="ml-auto">
           <span class="inline-flex items-center justify-center align-middle text-indigo-900"></span>
         </span>
@@ -110,8 +136,8 @@
             :disabled="isRequesting || ticket.status === 'in_progress'"
             class="w-full h-14 rounded-xl bg-[#0f2551] text-white text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span v-if="isRequesting">Requesting...</span>
-            <span v-else>Bring the car</span>
+            <span v-if="isRequesting">{{ t('requesting') }}</span>
+            <span v-else>{{ t('bring_car') }}</span>
           </button>
         </div>
       </div>
@@ -132,6 +158,55 @@ const props = defineProps({
 });
 
 const ticket = ref(props.ticket);
+
+// Simple i18n
+const locale = ref('ar');
+const showLangMenu = ref(false);
+const direction = computed(() => (locale.value === 'ar' ? 'rtl' : 'ltr'));
+
+const messages = {
+  ar: {
+    ticket_creation_date: 'تاريخ إنشاء التذكرة',
+    ticket_details: 'تفاصيل التذكرة',
+    phone: 'رقم هاتف العميل',
+    name: 'اسم العميل',
+    car_model: 'طراز السيارة',
+    car_company: 'شركة السيارة',
+    company: 'الشركة',
+    plate: 'رقم اللوحة',
+    show_on_map: 'عرض على الخريطة',
+    branch_location: 'موقع الفرع',
+    terms: 'الشروط والأحكام',
+    secure: 'آمن ومحمي بالكامل',
+    platform: 'منصة يور فالي',
+    requesting: 'جارٍ الطلب...'
+    ,bring_car: 'أحضر السيارة'
+  },
+  en: {
+    ticket_creation_date: 'Ticket creation date',
+    ticket_details: 'Ticket Details',
+    phone: 'Customer phone number',
+    name: 'Customer name',
+    car_model: 'Car model',
+    car_company: 'Car company',
+    company: 'The company',
+    plate: 'Car plate',
+    show_on_map: 'Show on map',
+    branch_location: 'Branch location',
+    terms: 'Terms and Conditions',
+    secure: 'Fully safe and secure',
+    platform: 'Your Valley platform',
+    requesting: 'Requesting...'
+    ,bring_car: 'Bring the car'
+  }
+};
+
+const t = (key) => messages[locale.value][key] || key;
+const toggleLangMenu = () => { showLangMenu.value = !showLangMenu.value; };
+const setLocale = (loc) => {
+  locale.value = loc;
+  showLangMenu.value = false;
+};
 
 const statusBadgeClass = computed(() => {
   const baseClasses = 'px-2 py-1 rounded-full text-xs font-medium';
@@ -219,7 +294,8 @@ const formatDateTime = (dateTime) => {
     minute: '2-digit',
   };
   
-  return new Date(dateTime).toLocaleString(undefined, options);
+  const localeCode = locale.value === 'ar' ? 'ar-SA' : undefined;
+  return new Date(dateTime).toLocaleString(localeCode, options);
 };
 
 // Initialize Echo for real-time updates (use the global Echo instance)
