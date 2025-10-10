@@ -1,79 +1,115 @@
 <template>
   <PublicLayout>
-    <div class="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <div class="text-center mb-8">
-        <h1 class="text-2xl font-bold text-gray-900">Valet Parking Ticket</h1>
-        <p class="text-gray-600">Your vehicle is in safe hands</p>
+    <div class="max-w-3xl mx-auto px-4 py-6">
+      <!-- Ticket creation date (top-right) -->
+      <div class="flex justify-end mb-3">
+        <div class="text-sm text-gray-700">Ticket creation date: <span class="font-medium">{{ formatDateTime(ticket.check_in_at) }}</span></div>
       </div>
 
-      <div class="bg-blue-50 p-4 rounded-lg mb-6">
-        <div class="flex justify-between items-center">
-          <div>
-            <h2 class="text-lg font-semibold">Ticket #{{ ticket.ticket_number }}</h2>
-            <div class="text-sm text-gray-600">
-              Status: <span :class="statusBadgeClass">{{ formatStatus(ticket.status) }}</span>
+      <!-- Main Card -->
+      <div class="relative bg-white border border-gray-200 rounded-2xl p-0 h-[100%]">
+        <!-- status chip -->
+         <div class="flex justify-between">
+           <div class="m-4">
+             <span class="inline-block px-3 py-1 text-xs rounded-md bg-rose-100 text-rose-700 border border-rose-200">{{ ticket.payment_status || 'unpaid' }}</span>
+           </div>
+           <!-- small green bar -->
+           <div class="m-4 w-6 h-1 rounded-full bg-green-400"></div>
+         </div>
+
+        <!-- Header row -->
+        <div class="px-5 pt-6 pb-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-500">›</span>
+              <span class="text-gray-500">#</span>
+              <h2 class="text-base font-semibold text-gray-800">Ticket Details</h2>
+            </div>
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center ring-1 ring-gray-200">
+              <span class="text-gray-400 text-sm">📷</span>
             </div>
           </div>
-          <div class="text-right">
-            <div class="text-sm text-gray-600">
-              Checked In: {{ formatDateTime(ticket.check_in_at) }}
+        </div>
+
+        <!-- divider -->
+        <hr class="mx-6"></hr>
+
+        <!-- Details grid -->
+        <div class="px-5 mt-4">
+          <div class="grid grid-cols-2 gap-y-6">
+            <div class="text-sm text-gray-500">Customer phone number</div>
+            <div class="text-sm text-gray-500">Customer name</div>
+            <div class="text-gray-700">{{ ticket.customer_phone || '-' }}</div>
+            <div class="text-gray-700">{{ ticket.customer_name || '-' }}</div>
+
+            <div class="text-sm text-gray-500">Car model</div>
+            <div class="text-sm text-gray-500">car company</div>
+            <div class="text-gray-700">{{ ticket.vehicle_model || '-' }}</div>
+            <div class="text-gray-700">{{ ticket.vehicle_make || ticket.vehicle_company || '-' }}</div>
+
+            <div class="text-sm text-gray-500">The company</div>
+            <div class="text-sm text-gray-500">car plate</div>
+            <div class="text-gray-700">{{ ticket.company || '-' }}</div>
+            <div class="text-gray-700">{{ ticket.license_plate || '-' }}</div>
+          </div>
+        </div>
+
+        <!-- divider -->
+        <hr class="m-6"></hr>
+        
+        <!-- Map teaser bar -->
+        <div class="px-5 pb-6">
+          <div class="rounded-xl overflow-hidden">
+            <div class="flex items-stretch justify-between bg-indigo-50">
+              <button
+                type="button"
+                @click="hasLocation ? window.open('https://www.google.com/maps/dir/?api=1&destination=' + ticket.check_in_latitude + ',' + ticket.check_in_longitude, '_blank') : null"
+                class="flex-1 text-left px-4 py-4 text-sm font-medium text-indigo-900 hover:bg-indigo-100 focus:outline-none"
+              >
+                Show on map
+              </button>
+              <div class="w-px bg-indigo-100"></div>
+              <div class="flex-1 px-4 py-3">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="text-sm font-medium text-gray-800">Branch location</div>
+                    <div class="text-xs text-gray-500">{{ ticket.branch_name || '-' }}</div>
+                  </div>
+                  <div class="w-8 h-8 rounded-full bg-indigo-200/60 ring-1 ring-indigo-300 flex items-center justify-center">
+                    <span class="text-indigo-800">⬡</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="font-semibold text-gray-700 mb-2">Customer Information</h3>
-          <p class="text-gray-800">{{ ticket.customer_name }}</p>
-          <p class="text-gray-600">{{ ticket.customer_phone }}</p>
-        </div>
-
-        <div class="bg-gray-50 p-4 rounded-lg">
-          <h3 class="font-semibold text-gray-700 mb-2">Vehicle Information</h3>
-          <p class="text-gray-800">{{ ticket.vehicle_make }} {{ ticket.vehicle_model }}</p>
-          <p class="text-gray-600">Color: {{ ticket.vehicle_color }}</p>
-          <p class="text-gray-600" v-if="ticket.license_plate">Plate: {{ ticket.license_plate }}</p>
-          <p class="text-gray-600" v-if="ticket.parking_spot">Spot: {{ ticket.parking_spot }}</p>
-        </div>
+      <!-- Spacer card under main (empty placeholder like screenshot) -->
+      <div class="mt-4">
+        <div class="w-full h-12 rounded-xl bg-white border border-gray-200"></div>
       </div>
 
-      <!-- Map Section -->
-      <div class="mt-8 mb-6">
-        <h3 class="font-semibold text-gray-700 mb-3">Vehicle Location</h3>
-        <div class="rounded-lg overflow-hidden border border-gray-200 h-64 relative">
-          <div id="map" class="w-full h-full"></div>
-          <div v-if="!hasLocation" class="absolute inset-0 flex items-center justify-center bg-gray-50">
-            <p class="text-gray-500">Location data not available</p>
-          </div>
-        </div>
+      <!-- Terms and security note -->
+      <div class="mt-6 text-sm text-gray-600 flex items-center flex-wrap gap-x-3 gap-y-2">
+        <a href="#" class="underline">Terms and Conditions</a>
+        <a href="#" class="underline">Fully safe and secure</a>
+        <span>Your Valley platform</span>
+        <span class="ml-auto">
+          <span class="inline-flex items-center justify-center align-middle text-indigo-900"></span>
+        </span>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex flex-col sm:flex-row gap-4 mt-6">
-        <button 
-          @click="requestVehicle" 
+      <!-- Primary action button -->
+      <div class="mt-6">
+        <button
+          @click="requestVehicle"
           :disabled="isRequesting || ticket.status === 'in_progress'"
-          class="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          class="w-full h-14 rounded-xl bg-[#0f2551] text-white text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <span v-if="isRequesting">Requesting...</span>
-          <span v-else>Bring My Car</span>
+          <span v-else>Bring the car</span>
         </button>
-        
-        <a 
-          :href="'https://www.google.com/maps/dir/?api=1&destination=' + ticket.check_in_latitude + ',' + ticket.check_in_longitude"
-          target="_blank"
-          class="px-6 py-3 text-center border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-        >
-          Get Directions
-        </a>
-      </div>
-
-      <div class="text-center text-sm text-gray-500 mt-8">
-        <p>Keep this link safe to check your vehicle status anytime</p>
-        <div class="mt-2 p-2 bg-gray-100 rounded text-xs break-all">
-          {{ ticket.public_url }}
-        </div>
       </div>
     </div>
   </PublicLayout>
