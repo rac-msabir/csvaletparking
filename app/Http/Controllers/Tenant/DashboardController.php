@@ -18,8 +18,8 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $tenantId = $user->tenant_id;
-        
+        $userId = $user->id;
+
         // Ensure the user has a personal team
         if (!$user->currentTeam) {
             // Create a personal team for the tenant admin if they don't have one
@@ -28,23 +28,29 @@ class DashboardController extends Controller
                 'name' => $user->name . "'s Team",
                 'personal_team' => true,
             ]);
-            
+
             // Switch to the new team
             $user->switchTeam($team);
         }
-        
+
         $stats = [
-            'active_tickets' => Ticket::where('tenant_id', $tenantId)
-                ->whereIn('status', ['open', 'in_progress'])
+            // New = pending tickets assigned to this employee
+            'new_count' => Ticket::where('assigned_to', $userId)
+                ->where('status', Ticket::STATUS_PENDING)
                 ->count(),
-            'employees_count' => User::where('tenant_id', $tenantId)
-                ->where('is_employee', true)
+            // Requested = in_progress tickets assigned to this employee
+            'requested_count' => Ticket::where('assigned_to', $userId)
+                ->where('status', Ticket::STATUS_IN_PROGRESS)
                 ->count(),
-            'avg_response_time' => $this->getAverageResponseTime($tenantId),
+            // Delivered = delivered tickets assigned to this employee
+            'delivered_count' => Ticket::where('assigned_to', $userId)
+                ->where('status', Ticket::STATUS_DELIVERED)
+                ->count(),
         ];
 
+
         // Recent tickets assigned to this tenant admin (UI table expects specific fields)
-        $recentTickets = Ticket::where('assigned_to', $user->id)
+        $recentTickets = Ticket::where('assigned_to', $userId)
             ->latest()
             ->get()
             ->map(function (Ticket $ticket) {
@@ -84,7 +90,7 @@ class DashboardController extends Controller
      */
     private function getAverageResponseTime($tenantId)
     {
-        $averageMinutes = Ticket::where('tenant_id', $tenantId)
+        $averageMinutes = Ticket::where('assigned_to', $tenantId)
             ->whereNotNull('check_in_at')
             ->whereNotNull('created_at')
             ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, check_in_at)) as avg_response_time')
@@ -100,7 +106,7 @@ class DashboardController extends Controller
 
         $hours = floor($averageMinutes / 60);
         $minutes = round($averageMinutes % 60);
-        
+
         return $hours . 'h ' . $minutes . 'm';
     }
 }

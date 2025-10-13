@@ -23,33 +23,34 @@
 
     <div class="py-6 md:py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
         <!-- Top Counters -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div class="rounded-2xl bg-white shadow border border-gray-100">
-            <div class="p-6 flex items-center justify-center">
-              <div class="flex flex-col items-center justify-center">
-                <p class="text-sm text-gray-500">Active Tickets</p>
-                <p class="mt-1 text-3xl font-semibold text-gray-900">{{ stats?.active_tickets ?? 0 }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-2xl bg-white shadow border border-gray-100">
-            <div class="p-6 flex items-center justify-center">
-              <div class="flex flex-col items-center justify-center">
-                <p class="text-sm text-gray-500">Employees</p>
-                <p class="mt-1 text-3xl font-semibold text-gray-900">{{ stats?.employees_count ?? 0 }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="rounded-2xl bg-white shadow border border-gray-100">
-            <div class="p-6 flex items-center justify-center">
-              <div class="flex flex-col items-center justify-center">
-                <p class="text-sm text-gray-500">Avg. Response Time</p>
-                <p class="mt-1 text-3xl font-semibold text-gray-900">{{ stats?.avg_response_time ?? '0m' }}</p>
-              </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+        <div class="rounded-2xl bg-white shadow border border-gray-100">
+          <div class="p-6 flex items-center justify-center">
+            <div class="flex flex-col items-center justify-center">
+              <p class="text-sm text-gray-500">New</p>
+              <p class="mt-1 text-3xl font-semibold">{{ stats?.new_count ?? 0 }}</p>
             </div>
           </div>
         </div>
+        <div class="rounded-2xl bg-white shadow border border-gray-100">
+          <div class="p-6 flex items-center justify-center">
+            <div class="flex flex-col items-center justify-center">
+              <p class="text-sm text-gray-500">Requested</p>
+              <p class="mt-1 text-3xl font-semibold">{{ stats?.requested_count ?? 0 }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="rounded-2xl bg-white shadow border border-gray-100">
+          <div class="p-6 flex items-center justify-center">
+            <div class="flex flex-col items-center justify-center">
+              <p class="text-sm text-gray-500">Delivered</p>
+              <p class="mt-1 text-3xl font-semibold">{{ stats?.delivered_count ?? 0 }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
         <!-- Add Ticket -->
         <div class="mt-6 md:mt-8">
