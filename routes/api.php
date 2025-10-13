@@ -15,10 +15,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+Route::middleware(['auth:sanctum', 'active'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
 // Public API routes for ticket actions
 Route::post('/tickets/{ticket}/request-vehicle', [TicketController::class, 'requestVehicle'])
+    ->middleware('active')
     ->name('api.tickets.request-vehicle');

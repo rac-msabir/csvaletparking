@@ -24,6 +24,7 @@ Route::prefix('admin')->group(function () {
 
 // Public ticket view route
 Route::get('/tickets/{token}', [PublicTicketController::class, 'show'])
+    ->middleware('active')
     ->name('tickets.public.show');
 
 // Redirect root to admin login
@@ -34,7 +35,7 @@ Route::get('/', function () {
 // Employee Authentication Routes
 Route::prefix('employee')->group(function () {
     Route::get('/login', [AdminLoginController::class, 'store'])
-        ->middleware('guest')
+        ->middleware('guest', 'active')
         ->name('employee.login');
 
     Route::post('/login', [EmployeeTicketController::class, 'store']); //wrong
@@ -45,7 +46,7 @@ Route::prefix('employee')->group(function () {
 });
 
 // Protected Routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     // Dashboard Route
     Route::get('/dashboard', function () {
         $user = auth()->user();
