@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import ApplicationMark from '@/Components/ApplicationMark.vue';
 import Banner from '@/Components/Banner.vue';
@@ -13,6 +13,14 @@ defineProps({
 });
 
 const showingNavigationDropdown = ref(false);
+const showSiteDropdown = ref(false);
+const selectedSite = ref(localStorage.getItem('uv:selectedSite') || 'Nua');
+const sites = computed(() => [{ label: 'Nua', value: 'nua' }]);
+const chooseSite = (site) => {
+    selectedSite.value = site.label;
+    showSiteDropdown.value = false;
+    try { localStorage.setItem('uv:selectedSite', site.label); } catch (e) {}
+};
 
 const switchToTeam = (team) => {
     router.put(route('current-team.update'), {
@@ -46,11 +54,20 @@ const logout = () => {
                                 </Link>
                             </div>
 
-                            <!-- Navigation Links -->
-                            <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                                    Dashboard
-                                </NavLink>
+                            <!-- Nua Dropdown (site selector) -->
+                            <div class="hidden sm:flex items-center sm:ms-6 relative" @keydown.escape="showSiteDropdown=false">
+                                <button type="button" @click="showSiteDropdown=!showSiteDropdown" class="inline-flex items-center h-9 px-3 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
+                                    <span class="truncate max-w-[10rem]">{{ selectedSite }}</span>
+                                    <svg class="ml-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </button>
+                                <div v-if="showSiteDropdown" class="absolute z-20 mt-2 w-56 rounded-xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden">
+                                    <ul class="py-1 max-h-64 overflow-auto">
+                                        <li v-for="s in sites" :key="s.value" @click="chooseSite(s)" class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer flex items-center justify-between">
+                                            <span class="truncate">{{ s.label }}</span>
+                                            <svg v-if="s.label===selectedSite" class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        </li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
 

@@ -1,25 +1,5 @@
 <template>
   <AppLayout :title="'Dashboard'">
-    <template #header>
-      <div class="flex items-center space-x-4">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Tenant Admin</h2>
-        <!-- Site selector (kept consistent) -->
-        <div class="relative" @keydown.escape="siteOpen=false">
-          <button type="button" @click="siteOpen=!siteOpen" class="inline-flex items-center h-9 px-3 rounded-lg border border-gray-300 text-gray-700 bg-white hover:bg-gray-50">
-            <span class="truncate max-w-[10rem]">{{ selectedSite }}</span>
-            <svg class="ml-2 h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <div v-if="siteOpen" class="absolute z-20 mt-2 w-56 rounded-xl bg-white shadow-lg ring-1 ring-black/5 overflow-hidden">
-            <ul class="py-1 max-h-64 overflow-auto">
-              <li v-for="s in sites" :key="s.value" @click="chooseSite(s)" class="px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer flex items-center justify-between">
-                <span class="truncate">{{ s.label }}</span>
-                <svg v-if="s.label===selectedSite" class="h-4 w-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </template>
 
     <div class="py-6 md:py-10">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -78,6 +58,10 @@
               </div>
             </div>
           </div>
+        </div>
+           <!-- Daily Report -->
+        <div class="mt-6 md:mt-8">
+          <button type="button" @click="dateModalOpen = true" class="w-full md:w-auto inline-flex items-center justify-center h-12 px-6 rounded-full border border-indigo-300 text-indigo-700 hover:bg-indigo-50">Daily Report</button>
         </div>
 
         <!-- Tickets Table (requested/all simplified to one list link) -->
