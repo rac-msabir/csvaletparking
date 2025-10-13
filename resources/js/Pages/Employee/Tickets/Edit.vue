@@ -162,23 +162,23 @@
             <!-- Additional Information Section -->
             <div class="px-6 py-5 border-t border-gray-200 bg-gray-50">
               <h3 class="text-lg font-medium text-gray-900">Additional Information</h3>
-              <p class="mt-1 text-sm text-gray-500">Any special instructions or notes.</p>
+              <p class="mt-1 text-sm text-gray-500">Any special instructions or Special Instructions.</p>
             </div>
             
             <div class="px-6 pb-5 bg-gray-50">
               <div class="grid grid-cols-6 gap-6">
-                <!-- Notes -->
+                <!-- special_instructions -->
                 <div class="col-span-6">
-                  <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                  <label for="special_instructions" class="block text-sm font-medium text-gray-700 mb-1">special_instructions</label>
                   <textarea
-                    id="notes"
-                    v-model="form.notes"
+                    id="special_instructions"
+                    v-model="form.special_instructions"
                     rows="3"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    :class="{ 'border-red-500': form.errors.notes }"
+                    :class="{ 'border-red-500': form.errors.special_instructions }"
                   ></textarea>
-                  <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.notes }}
+                  <p v-if="form.errors.special_instructions" class="mt-1 text-sm text-red-600">
+                    {{ form.errors.special_instructions }}
                   </p>
                 </div>
               </div>
@@ -231,7 +231,7 @@ const form = useForm({
   vehicle_color: props.ticket.vehicle_color,
   license_plate: props.ticket.license_plate,
   parking_spot: props.ticket.parking_spot,
-  notes: props.ticket.notes,
+  special_instructions: props.ticket.special_instructions,
 });
 
 const submit = () => {

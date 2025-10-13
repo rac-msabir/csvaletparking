@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 class TicketController extends Controller
 {
@@ -93,11 +97,11 @@ class TicketController extends Controller
         $filename = 'ticket_' . $ticket->ticket_number . '_' . time() . '.svg';
         $path = $directory . '/' . $filename;
 
-        $renderer = new \BaconQrCode\Renderer\ImageRenderer(
-            new \BaconQrCode\Renderer\RendererStyle\RendererStyle(300),
-            new \BaconQrCode\Renderer\Image\SvgImageBackEnd()
+        $renderer = new ImageRenderer(
+            new RendererStyle(300),
+            new SvgImageBackEnd()
         );
-        $writer = new \BaconQrCode\Writer($renderer);
+        $writer = new Writer($renderer);
         $svg = $writer->writeString($qrContent);
 
         Storage::disk('public')->put($path, $svg);
@@ -112,10 +116,8 @@ class TicketController extends Controller
     {
         // Ensure the ticket is assigned to the current employee
         if ($ticket->assigned_to !== Auth::id()) {
-            abort(403);
+            abort(403, 'You are not authorized to view this ticket.');
         }
-
-        $ticket->load(['images']);
         
         return Inertia::render('Tenant/Tickets/Show', [
             'ticket' => $ticket,
@@ -128,9 +130,9 @@ class TicketController extends Controller
     public function edit(Ticket $ticket)
     {
         // Ensure the ticket is assigned to the current employee
-        if ($ticket->assigned_to !== Auth::id()) {
-            abort(403);
-        }
+        // if ($ticket->assigned_to !== Auth::id()) {
+        //     abort(403);
+        // }
 
         return Inertia::render('Tenant/Tickets/Edit', [
             'ticket' => $ticket,
@@ -140,27 +142,25 @@ class TicketController extends Controller
     /**
      * Update the specified ticket in storage.
      */
-    public function update(Request $request, Ticket $ticket)
+    public function update(StoreTicketRequest $request, Ticket $ticket)
     {
         // Ensure the ticket is assigned to the current employee
-        if ($ticket->assigned_to !== Auth::id()) {
-            abort(403);
-        }
+        // if ($ticket->assigned_to !== Auth::id()) {
+        //     abort(403);
+        // }
 
-        $validated = $request->validate([
-            'status' => 'required|in:pending,open,in_progress,completed,cancelled',
-            'notes' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
-        // Update the ticket status
-        $ticket->update([
-            'status' => $validated['status'],
-            'notes' => $validated['notes'] ?? $ticket->notes,
-            'completed_at' => $validated['status'] === 'completed' ? now() : null,
-        ]);
+        // Update the ticket with validated data
+        $ticket->update($validated);
 
-        return redirect()->route('tenant.tickets.index')
+        return redirect()->route('tenant.tickets.show', $ticket)
             ->with('success', 'Ticket updated successfully.');
+    }
+
+    public function destroy(Ticket $ticket)
+    {
+        //
     }
 
     /**

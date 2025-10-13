@@ -116,12 +116,12 @@
               </div>
 
               <!-- Damage Notes -->
-              <div class="col-span-6 md:col-span-3">
+              <!-- <div class="col-span-6 md:col-span-3">
                 <p class="block text-sm font-medium text-gray-700 mb-1">Damage Notes</p>
                 <div class="mt-1 bg-white p-3 border border-gray-300 rounded-md">
                   <p class="text-gray-700">{{ ticket.damage_notes || 'No damage reported.' }}</p>
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
 
@@ -139,7 +139,7 @@
               </div>
 
               <!-- Payment Status -->
-              <div class="col-span-6 sm:col-span-2">
+              <!-- <div class="col-span-6 sm:col-span-2">
                 <p class="block text-sm font-medium text-gray-700 mb-1">Payment Status</p>
                 <span 
                   :class="{
@@ -153,10 +153,10 @@
               </div>
 
               <!-- Paid At -->
-              <div v-if="ticket.payment_status === 'paid'" class="col-span-6 sm:col-span-2">
+              <!-- <div v-if="ticket.payment_status === 'paid'" class="col-span-6 sm:col-span-2">
                 <p class="block text-sm font-medium text-gray-700 mb-1">Paid At</p>
                 <p class="text-gray-900">{{ formatDateTime(ticket.paid_at) }}</p>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>

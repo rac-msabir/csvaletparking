@@ -133,7 +133,7 @@
         <div class="max-w-3xl mx-auto px-4 py-3">
           <button
             @click="requestVehicle"
-            :disabled="isRequesting || ticket.status === 'in_progress'"
+            :disabled="isRequesting || ticket.status != 'pending'"
             class="w-full h-14 rounded-xl bg-[#0f2551] text-white text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span v-if="isRequesting">{{ t('requesting') }}</span>

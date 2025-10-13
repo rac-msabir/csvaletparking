@@ -110,8 +110,6 @@ class TicketController extends Controller
     public function index()
     {
         $tickets = Ticket::where('assigned_to', Auth::id())
-            ->with(['assignedEmployee', 'customer'])
-            ->latest()
             ->paginate(10);
 
         return Inertia::render('Employee/Tickets/Index', [
