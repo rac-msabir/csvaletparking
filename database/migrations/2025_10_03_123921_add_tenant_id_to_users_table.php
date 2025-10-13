@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Add tenant_id foreign key
-            $table->foreignId('tenant_id')->after('id')->nullable()->constrained()->onDelete('set null');
+            
+            $table->unsignedBigInteger('tenant_id')->after('id')->nullable()->constrained()->onDelete('set null');
             
             // Add user details
             $table->string('phone')->after('email')->nullable();
@@ -21,11 +21,9 @@ return new class extends Migration
             $table->string('timezone')->after('remember_token')->default('UTC');
             $table->string('locale', 10)->after('timezone')->default('en');
             $table->boolean('is_active')->after('locale')->default(true);
-            $table->timestamp('last_login_at')->after('is_active')->nullable();
+            $table->string('last_login_at')->after('is_active')->nullable();
             $table->string('last_login_ip')->after('last_login_at')->nullable();
             
-            // Add indexes
-            $table->index('tenant_id');
             $table->index('is_active');
         });
     }
@@ -36,8 +34,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Drop foreign key and columns
-            $table->dropForeign(['tenant_id']);
             $table->dropColumn([
                 'tenant_id',
                 'phone',
