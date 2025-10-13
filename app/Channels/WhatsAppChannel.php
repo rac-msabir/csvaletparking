@@ -6,6 +6,7 @@ use Twilio\Rest\Client;
 use App\Models\WhatsAppMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class WhatsAppChannel
 {
@@ -66,7 +67,8 @@ class WhatsAppChannel
             
             Log::info('WhatsApp message sent successfully via Twilio', [
                 'message_sid' => $twilioMessage->sid,
-                'phone_number' => $phoneNumber,
+                'from' => $config['whatsapp_from'],
+                'to' => $phoneNumber,
                 'status' => $twilioMessage->status
             ]);
             
@@ -181,7 +183,7 @@ class WhatsAppChannel
         
         // Ensure tenant_id is set, fallback to current tenant or default
         if (empty($messageData['tenant_id'])) {
-            $messageData['tenant_id'] = tenant('id') ?? 1; // Fallback to 1 if no tenant context
+            $messageData['tenant_id'] = Auth::user()->tenant_id;
         }
         
         return WhatsAppMessage::create($messageData);

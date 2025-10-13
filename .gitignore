@@ -20,8 +20,8 @@ storage/framework/cache/*
 storage/framework/views/*
 
 # Compiled assets
-/public/build
-/public/hot
+# /public/build
+# /public/hot
 
 # Development
 Homestead.json

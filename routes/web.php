@@ -83,9 +83,11 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('tickets.index');
 
             Route::get('/tickets/create', [TenantTicketController::class, 'create'])
+                ->middleware('check-ticket-location')
                 ->name('tickets.create');
 
             Route::post('/tickets/store', [TenantTicketController::class, 'store'])
+                ->middleware('check-ticket-location')
                 ->name('tickets.store');
 
             Route::get('/tickets/{ticket}', [TenantTicketController::class, 'show'])
@@ -125,9 +127,11 @@ Route::middleware(['auth', 'active'])->group(function () {
                 ->name('tickets.index');
 
             Route::get('/tickets/create', [EmployeeTicketController::class, 'create'])
+                ->middleware('check-ticket-location')
                 ->name('tickets.create');
 
             Route::post('/tickets/store', [EmployeeTicketController::class, 'store'])
+                ->middleware('check-ticket-location')
                 ->name('tickets.store');
 
             Route::get('/tickets/{ticket}', [EmployeeTicketController::class, 'show'])

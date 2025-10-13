@@ -11,6 +11,7 @@ use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
@@ -60,6 +61,9 @@ class User extends Authenticatable
         'two_factor_recovery_codes',
         'two_factor_confirmed_at',
         'email_verified_at',
+        'latitude',
+        'longitude',
+        'allowed_radius_km',
     ];
 
     /**
@@ -95,6 +99,9 @@ class User extends Authenticatable
         'last_login_at' => 'datetime',
         'is_active' => 'boolean',
         'settings' => 'array',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'allowed_radius_km' => 'float',
     ];
 
     /**
@@ -112,7 +119,7 @@ class User extends Authenticatable
         });
 
         static::deleting(function ($user) {
-            if (! $user->isForceDeleting()) {
+            if (!$user->isForceDeleting()) {
                 return;
             }
             // Handle soft-delete related models if needed
@@ -175,7 +182,7 @@ class User extends Authenticatable
     {
         $name = $this->name;
         $initials = '';
-        
+
         $words = explode(' ', $name);
         foreach ($words as $word) {
             $initials .= strtoupper(substr($word, 0, 1));
@@ -183,7 +190,7 @@ class User extends Authenticatable
                 break;
             }
         }
-        
+
         return $initials;
     }
 
@@ -286,4 +293,21 @@ class User extends Authenticatable
         $this->settings = $settings;
         return $this->save();
     }
+
+    // Add this relationship method
+/**
+ * Get all suspicious login attempts for the user.
+ */
+public function suspiciousLogins()
+{
+    return $this->hasMany(SuspiciousLogin::class);
+}
+
+/**
+ * Get the most recent suspicious login attempt.
+ */
+public function latestSuspiciousLogin()
+{
+    return $this->hasOne(SuspiciousLogin::class)->latest();
+}
 }
