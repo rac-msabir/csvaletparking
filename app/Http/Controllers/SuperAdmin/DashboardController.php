@@ -18,24 +18,22 @@ class DashboardController extends Controller
      */
     public function index()
     {
-        $stats = [
-            'tenants_count' => Tenant::count(),
-            'active_tickets' => Ticket::whereIn('status', ['open', 'in_progress'])->count(),
-            'users_count' => User::count(),
-        ];
 
-        $tenants = Tenant::select(['id', 'name', 'is_active', 'created_at'])
+        // List tenant users instead of Tenant records
+        $tenants = User::where('is_tenant_admin', true)
+            ->select(['id', 'name', 'domain', 'is_active', 'created_at'])
             ->latest()
             ->paginate(10)
             ->toArray();
 
-        // Transform the items array
-        $tenants['data'] = array_map(function ($tenant) {
+        // Transform items to match UI expectations
+        $tenants['data'] = array_map(function ($user) {
             return [
-                'id' => $tenant['id'],
-                'name' => $tenant['name'],
-                'is_active' => $tenant['is_active'],
-                'created_at' => \Carbon\Carbon::parse($tenant['created_at'])->format('M d, Y'),
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'domain' => $user['domain'] ?? null,
+                'is_active' => $user['is_active'] ?? true,
+                'created_at' => \Carbon\Carbon::parse($user['created_at'])->format('M d, Y'),
             ];
         }, $tenants['data']);
 
