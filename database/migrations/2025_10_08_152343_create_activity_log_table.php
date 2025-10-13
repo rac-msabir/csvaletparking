@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->nullableMorphs('subject');
             $table->string('event')->nullable();
-            $table->nullableMorphs('causer', 'causer');
+            $table->nullableMorphs('causer');
             $table->json('properties')->nullable();
             $table->uuid('batch_uuid')->nullable();
             $table->timestamps();
