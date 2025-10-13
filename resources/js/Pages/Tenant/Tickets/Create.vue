@@ -177,7 +177,7 @@
                               disabled 
                               class="block w-full border border-gray-300 bg-gray-100 rounded-md shadow-sm py-2 px-3 text-gray-700 sm:text-sm"
                             >
-                            <input type="hidden" v-model="form.assigned_to" :value="$page.props.auth.user.id" />
+                            <input type="hidden" :value="$page.props.auth.user.id" />
                           </div>
                           <p class="mt-1 text-sm text-gray-500">Tickets are automatically assigned to you.</p>
                         </div>

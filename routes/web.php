@@ -78,7 +78,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/dashboard', [TenantDashboardController::class, 'index'])
                 ->name('dashboard');
             // Tickets
-            Route::get('/tickets', [TenantDashboardController::class, 'index'])
+            Route::get('/tickets', [TenantTicketController::class, 'index'])
                 ->name('tickets.index');
 
             Route::get('/tickets/create', [TenantTicketController::class, 'create'])
@@ -105,6 +105,8 @@ Route::middleware(['auth'])->group(function () {
             Route::prefix('tickets')->group(function () {
                 Route::post('{ticket}/status', [TenantTicketController::class, 'updateStatus'])
                     ->name('tickets.status.update');
+                Route::get('{ticket}/print', [TenantTicketController::class, 'print'])
+                    ->name('tickets.print');
             });
         });
 
