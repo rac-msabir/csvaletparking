@@ -6,10 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTicketRequest;
 use App\Models\Ticket;
 use App\Notifications\WhatsAppTicketCreated;
+use App\Notifications\CarReadyNotification;
+use App\Notifications\CarDeliveredNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
@@ -125,7 +128,7 @@ class TicketController extends Controller
 
         return $path;
     }
-    
+
     /**
      * Display the specified ticket.
      */
@@ -197,6 +200,19 @@ class TicketController extends Controller
             }
 
             $ticket->update($updates);
+
+            // Send notifications based on status change
+            if ($ticket->customer_phone) {
+                try {
+                    if ($status === 'ready') {
+                        $ticket->notify(new CarReadyNotification($ticket));
+                    } elseif ($status === 'delivered') {
+                        $ticket->notify(new CarDeliveredNotification($ticket));
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to send notification: ' . $e->getMessage());
+                }
+            }
 
             activity()
                 ->causedBy(Auth::user())
