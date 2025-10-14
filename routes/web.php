@@ -9,6 +9,7 @@ use App\Http\Controllers\Employee\TicketController as EmployeeTicketController;
 use App\Http\Controllers\Tenant\TicketController as TenantTicketController;
 use App\Http\Controllers\Public\TicketController as PublicTicketController;
 use Inertia\Inertia;
+use App\Http\Controllers\SuperAdmin\SuspiciousLoginController;
 
 // Admin Authentication Routes
 Route::prefix('admin')->group(function () {
@@ -66,6 +67,14 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->group(function () {
             Route::get('/dashboard', [SuperAdminDashboardController::class, 'index'])
                 ->name('dashboard');
+            Route::get('/suspicious-logins', [SuspiciousLoginController::class, 'index'])
+                ->name('suspicious-logins.index');
+
+            Route::get('/suspicious-logins/{suspiciousLogin}', [SuspiciousLoginController::class, 'show'])
+                ->name('suspicious-logins.show');
+
+            Route::post('/suspicious-logins/{suspiciousLogin}/notified', [SuspiciousLoginController::class, 'markAsNotified'])
+                ->name('suspicious-logins.mark-notified');
         });
 
     // Tenant Admin Routes

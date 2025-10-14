@@ -9,12 +9,21 @@
               <span class="text-xl font-bold text-gray-800">Valet Admin</span>
             </div>
             <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <inertia-link 
-                :href="route('super-admin.dashboard')" 
-                :class="[$page.url.startsWith('/super-admin/dashboard') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']">
-                Dashboard
-              </inertia-link>
-            </div>
+            <inertia-link 
+              :href="route('super-admin.dashboard')" 
+              :class="[$page.url.startsWith('/super-admin/dashboard') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']">
+              Dashboard
+            </inertia-link>
+            <inertia-link 
+              :href="route('super-admin.suspicious-logins.index')" 
+              :class="[$page.url.startsWith('/super-admin/suspicious-logins') ? 'border-indigo-500 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700', 'inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium']">
+              Suspicious Logins
+              <span v-if="$page.props.unreadSuspiciousLoginsCount" 
+                    class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-bold leading-none text-white transform translate-y-1/2 -translate-x-1/2 bg-red-600 rounded-full">
+                {{ $page.props.unreadSuspiciousLoginsCount }}
+              </span>
+            </inertia-link>
+          </div>
           </div>
           <div class="hidden sm:ml-6 sm:flex sm:items-center">
             <div class="ml-3 relative">

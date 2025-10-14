@@ -12,6 +12,7 @@ use Laravel\Jetstream\HasTeams;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class User extends Authenticatable
 {
@@ -247,7 +248,7 @@ class User extends Authenticatable
      */
     public function isTenantAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->is_tenant_admin;
     }
 
     /**
@@ -295,19 +296,19 @@ class User extends Authenticatable
     }
 
     // Add this relationship method
-/**
- * Get all suspicious login attempts for the user.
- */
-public function suspiciousLogins()
-{
-    return $this->hasMany(SuspiciousLogin::class);
-}
+    /**
+     * Get all suspicious login attempts for the user.
+     */
+    public function suspiciousLogins()
+    {
+        return $this->hasMany(SuspiciousLogin::class);
+    }
 
-/**
- * Get the most recent suspicious login attempt.
- */
-public function latestSuspiciousLogin()
-{
-    return $this->hasOne(SuspiciousLogin::class)->latest();
-}
+    /**
+     * Get the most recent suspicious login attempt.
+     */
+    public function latestSuspiciousLogin()
+    {
+        return $this->hasOne(SuspiciousLogin::class)->latest();
+    }
 }

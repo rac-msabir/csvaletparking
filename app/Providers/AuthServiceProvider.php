@@ -14,6 +14,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         \App\Models\Ticket::class => \App\Policies\TicketPolicy::class,
+        \App\Models\SuspiciousLogin::class => \App\Policies\SuspiciousLoginPolicy::class,
     ];
 
     /**
