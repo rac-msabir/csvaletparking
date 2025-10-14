@@ -237,7 +237,7 @@
 
     <!-- QR Code Modal -->
     <TransitionRoot as="template" :show="showQRModal">
-      <Dialog as="div" class="fixed z-10 inset-0 overflow-y-auto" @close="showQRModal = false">
+      <Dialog as="div" class="fixed z-10 inset-0 overflow-y-auto" @close="closeQRModal">
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
           <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
             <DialogOverlay class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
@@ -280,6 +280,21 @@
                   @click="downloadQRCode"
                 >
                   Download QR
+                </button>
+                <button
+                  type="button"
+                  class="col-span-2 inline-flex justify-center w-full rounded-md border border-green-600 shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
+                  @click="printViaThermal"
+                  :disabled="isPrinting"
+                >
+                  <svg v-if="isPrinting" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <svg v-else class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                  </svg>
+                  {{ isPrinting ? 'Printing...' : 'Print via Thermal Printer' }}
                 </button>
                 <Link 
                   :href="route('tenant.dashboard')"
@@ -331,10 +346,39 @@ const uploadedFiles = ref([]);
 const locationStatus = ref('Getting your location...');
 const isLocationReady = ref(false);
 const showQRModal = ref(false);
-const qrCodeUrl = ref('');
 const qrCanvas = ref(null);
 const qrCodeElement = ref(null);
+const qrCodeUrl = ref('');
 const ticketNumber = ref('');
+const isPrinting = ref(false);
+
+// Reset QR code data when modal is closed
+const closeQRModal = () => {
+  showQRModal.value = false;
+  qrCodeUrl.value = '';
+};
+
+// Print via thermal printer
+const printViaThermal = async () => {
+    if (!ticketNumber.value) return;
+    
+    isPrinting.value = true;
+    
+    try {
+        const response = await axios.get(route('print.qr', ticketNumber.value));
+        
+        if (response.data.status === 'success') {
+            toast.success('Ticket sent to thermal printer successfully!');
+        } else {
+            throw new Error(response.data.message || 'Failed to print ticket');
+        }
+    } catch (error) {
+        console.error('Print error:', error);
+        toast.error(`Print failed: ${error.response?.data?.message || error.message}`);
+    } finally {
+        isPrinting.value = false;
+    }
+};
 
 // File handling
 const handleFileUpload = (event) => {

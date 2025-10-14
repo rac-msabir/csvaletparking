@@ -46,6 +46,10 @@ Route::prefix('employee')->group(function () {
         ->name('employee.logout');
 });
 
+// Print Route
+Route::get('/print-qr/{id}', [App\Http\Controllers\PrintController::class, 'printQr'])
+    ->name('print.qr');
+
 // Protected Routes
 Route::middleware(['auth', 'active'])->group(function () {
     // Dashboard Route

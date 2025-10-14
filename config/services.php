@@ -38,4 +38,10 @@ return [
         'content_sid' => env('TWILIO_CONTENT_SID', 'HXb5b62575e6e4ff6129ad7c8efe1f983e'),
     ],
 
+    'printer' => [
+        'ip' => env('PRINTER_IP', '192.168.0.55'),
+        'port' => env('PRINTER_PORT', 9100),
+        'timeout' => 5, // Connection timeout in seconds
+    ],
+
 ];
