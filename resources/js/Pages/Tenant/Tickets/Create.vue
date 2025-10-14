@@ -360,12 +360,24 @@ const closeQRModal = () => {
 
 // Print via thermal printer
 const printViaThermal = async () => {
-    if (!ticketNumber.value) return;
+    if (!ticketNumber.value) {
+        toast.error('No ticket number available for printing');
+        return;
+    }
     
     isPrinting.value = true;
     
     try {
-        const response = await axios.get(route('print.qr', ticketNumber.value));
+        const url = route('print.qr', ticketNumber.value);
+        console.log('Sending print request to:', url);
+        
+        const response = await axios.get(url, {
+            timeout: 10000, // 10 second timeout
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
         
         if (response.data.status === 'success') {
             toast.success('Ticket sent to thermal printer successfully!');
@@ -373,8 +385,21 @@ const printViaThermal = async () => {
             throw new Error(response.data.message || 'Failed to print ticket');
         }
     } catch (error) {
-        console.error('Print error:', error);
-        toast.error(`Print failed: ${error.response?.data?.message || error.message}`);
+        console.error('Print error details:', {
+            message: error.message,
+            code: error.code,
+            status: error.response?.status,
+            statusText: error.response?.statusText,
+            responseData: error.response?.data
+        });
+        
+        if (error.code === 'ECONNABORTED') {
+            toast.error('Print request timed out. Please check the printer connection.');
+        } else if (error.response?.status === 502) {
+            toast.error('Unable to connect to the print service. Please try again later.');
+        } else {
+            toast.error(`Print failed: ${error.response?.data?.message || error.message}`);
+        }
     } finally {
         isPrinting.value = false;
     }
