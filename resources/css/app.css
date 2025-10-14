@@ -5,3 +5,43 @@
 [x-cloak] {
     display: none;
 }
+
+/* Custom styles for buttons */
+.btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark focus:ring-2 focus:ring-offset-2 focus:ring-primary-dark;
+}
+
+/* Table header styles */
+thead th {
+    @apply bg-primary text-white;
+}
+
+/* Override default button styles */
+/* button:not([class*="bg-"]):not(.bg-transparent) {
+    @apply bg-primary text-white hover:bg-primary-dark;
+} */
+
+/* Override primary button styles */
+.bg-blue-600, .bg-blue-700 {
+    @apply bg-primary hover:bg-primary-dark;
+}
+
+/* Override focus ring color */
+.focus\:ring-blue-500:focus {
+    --tw-ring-color: rgba(43, 80, 169, 0.5);
+}
+
+/* Override checkbox and radio button colors */
+input[type="checkbox"]:checked, 
+input[type="radio"]:checked {
+    @apply text-primary border-primary focus:ring-primary;
+}
+
+/* Override link colors */
+.text-blue-600 {
+    @apply text-primary;
+}
+
+.hover\:text-blue-500:hover {
+    @apply text-primary-dark;
+}

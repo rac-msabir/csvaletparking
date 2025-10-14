@@ -246,7 +246,7 @@
         </div>
         <div class="px-6 pb-6">
           <button 
-            class="w-full h-12 rounded-full bg-indigo-700 text-white hover:bg-indigo-800 disabled:opacity-50 disabled:cursor-not-allowed" 
+            class="w-full h-12 rounded-full bg-primary hover:bg-primary-dark text-white disabled:opacity-50 disabled:cursor-not-allowed" 
             @click="submitStatus"
             :disabled="!selectedStatus"
           >
