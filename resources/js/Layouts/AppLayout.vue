@@ -50,7 +50,7 @@ const logout = () => {
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
                                 <Link :href="route('dashboard')">
-                                    <ApplicationMark class="block h-9 w-auto" />
+                                   <img src="/logo.jpg" class="w-12 h-14" alt="Logo">
                                 </Link>
                             </div>
 

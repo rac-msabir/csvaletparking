@@ -34,7 +34,7 @@
 
         <!-- Add Ticket -->
         <div class="mt-6 md:mt-8">
-          <Link :href="route('tenant.tickets.create')" class="block w-full inline-flex items-center justify-center rounded-full bg-indigo-700 hover:bg-indigo-800 text-white h-12 px-6 md:px-10 font-medium">
+          <Link :href="route('tenant.tickets.create')" class="block bg-primary w-full inline-flex items-center justify-center rounded-full text-white h-12 px-6 md:px-10 font-medium">
             <span class="text-lg">+ Add Ticket</span>
           </Link>
         </div>
@@ -69,11 +69,32 @@
           <div class="rounded-2xl bg-white shadow border border-gray-100">
             <div class="px-4 md:px-6 pt-5 flex items-center justify-between">
               <div class="flex space-x-6">
-                <Link :href="route('tenant.tickets.index')" class="pb-3 border-b-2 border-indigo-700 text-indigo-700 font-semibold">All Tickets</Link>
+                <button 
+                  @click="activeTab = 'all'" 
+                  :class="[activeTab === 'all' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-primary', 'pb-3 font-semibold focus:outline-none transition-colors duration-200']"
+                >
+                  All Tickets
+                </button>
+                <button 
+                  @click="activeTab = 'requested'" 
+                  :class="[activeTab === 'requested' ? 'border-b-2 border-primary text-primary' : 'text-gray-500 hover:text-primary', 'pb-3 font-semibold focus:outline-none transition-colors duration-200']"
+                >
+                  Requested Cars
+                </button>
               </div>
-              <div class="flex items-center space-x-6 text-indigo-700 font-medium">
-                <button class="hover:opacity-80" @click="toggleSort">Sort</button>
-                <button class="hover:opacity-80" @click="dateModalOpen = true">Date</button>
+              <div class="flex items-center space-x-6 text-gray-700 font-medium">
+                <button 
+                  class="hover:text-primary transition-colors duration-200" 
+                  @click="toggleSort"
+                >
+                  Sort
+                </button>
+                <button 
+                  class="hover:text-primary transition-colors duration-200" 
+                  @click="dateModalOpen = true"
+                >
+                  Date
+                </button>
               </div>
             </div>
 
@@ -195,7 +216,7 @@
           </div>
         </div>
         <div class="px-6 pb-6 flex flex-col space-y-3 items-center justify-between">
-          <button class="block w-full h-12 px-8 rounded-full bg-indigo-700 text-white hover:bg-indigo-800" @click="applyReport">Ok</button>
+          <button class="block w-full h-12 px-8 rounded-full bg-primary text-white hover:bg-primary-dark" @click="applyReport">Ok</button>
           <button class="block w-full h-12 px-8 rounded-full border border-gray-300" @click="dateModalOpen=false">Cancel</button>
         </div>
       </div>
@@ -283,8 +304,7 @@ import 'vue3-toastify/dist/index.css';
 
 const props = defineProps({
   stats: Object,
-  recentTickets: Array,
-  auth: Object,
+  recentTickets: { type: Array, default: () => [] },
   sites: { type: Array, default: () => [] },
   currentSite: { type: String, default: '' },
 });
@@ -300,6 +320,9 @@ const chooseSite = (site) => {
   toast.success(`Switched to ${site.label}`);
 };
 
+/* Tabs */
+const activeTab = ref('all');
+
 /* Search */
 const searchBy = ref('');
 const searchQuery = ref('');
@@ -311,7 +334,15 @@ const searchPlaceholder = computed(() => {
 });
 
 /* Tickets source */
-const tickets = computed(() => props.recentTickets || []);
+const tickets = computed(() => {
+  if (!props.recentTickets) return [];
+  
+  if (activeTab.value === 'requested') {
+    return props.recentTickets.filter(ticket => ticket.status === 'in_progress');
+  }
+  
+  return props.recentTickets;
+});
 
 /* Filtering */
 const filteredTickets = computed(() => {

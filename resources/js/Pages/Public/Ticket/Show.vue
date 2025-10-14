@@ -1,11 +1,11 @@
 <template>
   <PublicLayout>
     <!-- Indigo Header with Logo and Language Dropdown -->
-    <div class="w-full bg-[#0f2551]  text-white">
+    <div class="w-full bg-primary text-white">
       <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between" :dir="direction">
         <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded bg-white/20 flex items-center justify-center font-bold">UV</div>
-          <div class="font-semibold tracking-wide">UR VALET</div>
+          
+          <img src="/logo.jpg" class="w-10 h-14"/>
         </div>
         <div class="relative" @keydown.escape="showLangMenu = false">
           <button @click="toggleLangMenu" class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 focus:outline-none">
@@ -134,7 +134,7 @@
           <button
             @click="requestVehicle"
             :disabled="isRequesting || ticket.status != 'pending'"
-            class="w-full h-14 rounded-xl bg-[#0f2551] text-white text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            class="w-full h-14 rounded-xl bg-primary hover:bg-primary-dark text-white text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span v-if="isRequesting">{{ t('requesting') }}</span>
             <span v-else>{{ t('bring_car') }}</span>

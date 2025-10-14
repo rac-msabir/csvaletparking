@@ -36,7 +36,7 @@
 
         <!-- Add Ticket -->
         <div class="mt-6 md:mt-8">
-          <Link :href="route('employee.tickets.create')" class="block w-full inline-flex items-center justify-center rounded-full bg-indigo-700 hover:bg-indigo-800 text-white h-12 px-6 md:px-10 font-medium">
+          <Link :href="route('employee.tickets.create')" class="block bg-primary w-full inline-flex items-center justify-center rounded-full text-white h-12 px-6 md:px-10 font-medium">
             <span class="text-lg">+ Add Ticket</span>
           </Link>
         </div>
@@ -78,7 +78,7 @@
                 <button @click="activeTab = 'all'" :class="tabClass('all')">All Tickets</button>
               </div>
               <div class="flex items-center space-x-6 text-indigo-700 font-medium">
-                <button class="hover:opacity-80" @click="toggleSort">Sort</button>
+                <button class="hover:opacity-80 bg-none" @click="toggleSort">Sort</button>
                 <button class="hover:opacity-80" @click="dateModalOpen = true">Date</button>
               </div>
             </div>
