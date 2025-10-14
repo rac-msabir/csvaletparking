@@ -51,6 +51,7 @@ class StoreTicketRequest extends FormRequest
             'assigned_to' => 'nullable|exists:users,id',
             'delivered_by' => 'nullable|exists:users,id',
             'created_by' => 'nullable|exists:users,id',
+             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max per file
         ];
     }
 

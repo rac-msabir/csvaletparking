@@ -35,7 +35,23 @@ class TicketController extends Controller
      */
     public function store(StoreTicketRequest $request)
     {
-        $ticket = Ticket::create($request->validated());
+        $validated = $request->validated();
+        // Create the ticket
+        $ticket = Ticket::create($validated);
+
+        // Handle file uploads
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('ticket-images', 's3'); // or 'public' for local storage
+
+                $ticket->images()->create([
+                    'path' => $path,
+                    'original_name' => $image->getClientOriginalName(),
+                    'mime_type' => $image->getClientMimeType(),
+                    'size' => $image->getSize(),
+                ]);
+            }
+        }
 
         // Generate ticket number if not provided
         if (empty($ticket->ticket_number)) {
@@ -49,7 +65,7 @@ class TicketController extends Controller
         $ticket->update([
             'qr_code_path' => $qrCodePath
         ]);
-        
+
         // Send WhatsApp notification to customer if phone number is provided
         if ($ticket->customer_phone) {
             try {
@@ -92,7 +108,7 @@ class TicketController extends Controller
         // Generate unique filename
         $filename = 'ticket_' . $ticket->ticket_number . '_' . time() . '.svg';
         $path = $directory . '/' . $filename;
-        
+
         // Generate QR code using Bacon QR Code
         $renderer = new ImageRenderer(
             new RendererStyle(300),
@@ -100,10 +116,10 @@ class TicketController extends Controller
         );
         $writer = new Writer($renderer);
         $svg = $writer->writeString($qrContent);
-        
+
         // Save the QR code
         Storage::disk('public')->put($path, $svg);
-        
+
         return $path;
     }
 
@@ -203,7 +219,7 @@ class TicketController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error updating ticket status: ' . $e->getMessage());
-            
+
             return response()->json([
                 'message' => 'Failed to update ticket status',
                 'error' => config('app.debug') ? $e->getMessage() : null,
@@ -229,23 +245,23 @@ class TicketController extends Controller
     /**
      * Update the specified ticket in storage.
      */
-/**
- * Update the specified ticket in storage.
- */
-public function update(StoreTicketRequest $request, Ticket $ticket)
-{
-    // Ensure the ticket is assigned to the current employee
-    // if ($ticket->assigned_to !== Auth::id()) {
-    //     abort(403);
-    // }
+    /**
+     * Update the specified ticket in storage.
+     */
+    public function update(StoreTicketRequest $request, Ticket $ticket)
+    {
+        // Ensure the ticket is assigned to the current employee
+        // if ($ticket->assigned_to !== Auth::id()) {
+        //     abort(403);
+        // }
 
-    $validated = $request->validated();
+        $validated = $request->validated();
 
-    // Update the ticket with validated data
-    $ticket->update($validated);
+        // Update the ticket with validated data
+        $ticket->update($validated);
 
-    return redirect()->route('employee.tickets.show', $ticket)
-        ->with('success', 'Ticket updated successfully.');
-}
+        return redirect()->route('employee.tickets.show', $ticket)
+            ->with('success', 'Ticket updated successfully.');
+    }
 
 }

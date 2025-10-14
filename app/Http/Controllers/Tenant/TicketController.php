@@ -45,10 +45,27 @@ class TicketController extends Controller
     /**
      * Store a newly created ticket in storage.
      */
+    // In your TicketController
     public function store(StoreTicketRequest $request)
     {
-        $ticket = Ticket::create($request->validated());
+        $validated = $request->validated();
+        $ticket = Ticket::create($validated);
 
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $path = $image->store('ticket-images', 'public');
+
+                $ticket->images()->create([
+                    'path' => $path,
+                    'original_name' => $image->getClientOriginalName(),
+                    'mime_type' => $image->getClientMimeType(),
+                    'size' => $image->getSize(),
+                    'uploaded_by' => auth()->id(), // Add this line
+                ]);
+            }
+        }
+
+        // Rest of your code (QR code generation, etc.)
         if (empty($ticket->ticket_number)) {
             $ticket->update([
                 'ticket_number' => 'TKT-' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT)
@@ -112,30 +129,20 @@ class TicketController extends Controller
     /**
      * Display the specified ticket.
      */
+    // In your TicketController's show and edit methods
     public function show(Ticket $ticket)
     {
-        // Ensure the ticket is assigned to the current employee
-        if ($ticket->assigned_to !== Auth::id()) {
-            abort(403, 'You are not authorized to view this ticket.');
-        }
-        
+        $ticket->load('images');
         return Inertia::render('Tenant/Tickets/Show', [
-            'ticket' => $ticket,
+            'ticket' => $ticket
         ]);
     }
 
-    /**
-     * Show the form for editing the specified ticket.
-     */
     public function edit(Ticket $ticket)
     {
-        // Ensure the ticket is assigned to the current employee
-        // if ($ticket->assigned_to !== Auth::id()) {
-        //     abort(403);
-        // }
-
+        $ticket->load('images');
         return Inertia::render('Tenant/Tickets/Edit', [
-            'ticket' => $ticket,
+            'ticket' => $ticket
         ]);
     }
 

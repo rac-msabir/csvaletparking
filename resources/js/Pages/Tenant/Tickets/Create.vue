@@ -12,7 +12,7 @@
       <!-- Main Content -->
       <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div class="bg-white shadow rounded-lg overflow-hidden">
-          <form id="ticket-form" @submit.prevent="submit">
+          <form id="ticket-form" @submit.prevent="submit" enctype="multipart/form-data">
             <!-- Customer Information Section -->
             <div class="px-6 py-5 border-b border-gray-200">
               <h3 class="text-lg font-medium text-gray-900">Customer Information</h3>
@@ -156,6 +156,35 @@
                   </p>
                 </div>
               </div>
+              <!-- Vehicle Images Section -->
+              <div class="col-span-6 sm:col-span-2 mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Vehicle Images</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <div class="space-y-1 text-center">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    <div class="flex text-sm text-gray-600">
+                      <label for="vehicle_images" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                        <span>Upload files</span>
+                        <input id="vehicle_images" name="vehicle_images" type="file" class="sr-only" multiple @change="handleFileUpload" accept="image/*">
+                      </label>
+                      <p class="pl-1">or drag and drop</p>
+                    </div>
+                    <p class="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                    <div v-if="uploadedFiles.length > 0" class="mt-2">
+                      <div v-for="(file, index) in uploadedFiles" :key="index" class="flex items-center justify-between p-2 bg-gray-50 rounded-md">
+                        <span class="text-sm text-gray-700 truncate max-w-xs">{{ file.name }}</span>
+                        <button type="button" @click="removeFile(index)" class="text-red-600 hover:text-red-800">
+                          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Additional Information Section -->
@@ -185,7 +214,7 @@
             <!-- Form Actions -->
             <div class="px-6 py-3 bg-gray-50 text-right border-t border-gray-200">
               <Link 
-                :href="route('tenant.tickets.index')" 
+                :href="route('tenant.dashboard')" 
                 class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 Cancel
@@ -267,6 +296,8 @@
   </AppLayout>
 </template>
 
+
+<!-- Update the script section (around line 270) -->
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
 import { ref, onMounted, nextTick } from 'vue';
@@ -292,8 +323,11 @@ const form = useForm({
   check_in_longitude: null,
   special_instructions: '',
   damage_notes: '',
+  images: [],
 });
 
+// Refs for UI state
+const uploadedFiles = ref([]);
 const locationStatus = ref('Getting your location...');
 const isLocationReady = ref(false);
 const showQRModal = ref(false);
@@ -302,12 +336,27 @@ const qrCanvas = ref(null);
 const qrCodeElement = ref(null);
 const ticketNumber = ref('');
 
-// Get user's current location when component mounts
-onMounted(() => {
-  getLocation();
-});
+// File handling
+const handleFileUpload = (event) => {
+  const files = Array.from(event.target.files);
+  // Filter for image files and limit to 5 images max
+  const imageFiles = files
+    .filter(file => file.type.startsWith('image/'))
+    .slice(0, 5 - uploadedFiles.value.length);
+  
+  // Add new files to the uploadedFiles array
+  uploadedFiles.value = [...uploadedFiles.value, ...imageFiles];
+  // Update the form data
+  form.images = uploadedFiles.value;
+};
 
-async function getLocation() {
+const removeFile = (index) => {
+  uploadedFiles.value.splice(index, 1);
+  form.images = [...uploadedFiles.value];
+};
+
+// Location handling
+const getLocation = async () => {
   if (!navigator.geolocation) {
     locationStatus.value = 'Geolocation is not supported by your browser';
     return;
@@ -323,7 +372,6 @@ async function getLocation() {
       });
     });
 
-    // Set check-in location
     form.check_in_latitude = position.coords.latitude;
     form.check_in_longitude = position.coords.longitude;
     
@@ -346,54 +394,107 @@ async function getLocation() {
     }
     isLocationReady.value = false;
   }
-}
+};
 
+// Form submission
+const submit = async () => {
+  // If location is not ready, try to get it first
+  if (!isLocationReady.value) {
+    locationStatus.value = 'Getting your location...';
+    try {
+      await getLocation();
+      if (!isLocationReady.value) {
+        locationStatus.value = 'Location is required. Please enable location services and try again.';
+        return;
+      }
+    } catch (error) {
+      locationStatus.value = 'Error getting location. Please try again.';
+      return;
+    }
+  }
+
+  try {
+    if (uploadedFiles.value.length > 0) {
+      // Create FormData for file uploads
+      const formData = new FormData();
+      
+      // Append all form fields
+      Object.keys(form).forEach(key => {
+        if (key !== 'images' && form[key] !== null) {
+          formData.append(key, form[key]);
+        }
+      });
+      
+      // Append each image file
+      uploadedFiles.value.forEach((file, index) => {
+        formData.append(`images[${index}]`, file);
+      });
+
+      // Submit with FormData
+      await form.post(route('tenant.tickets.store'), {
+        data: formData,
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: (response) => {
+          if (response.props.ticket) {
+            generateQRCode(response.props.ticket);
+          }
+        },
+        onError: (errors) => {
+          console.log('Form errors:', errors);
+          form.errors = errors;
+        },
+      });
+    } else {
+      // Submit without files
+      await form.post(route('tenant.tickets.store'), {
+        preserveScroll: true,
+        onSuccess: (response) => {
+          if (response.props.ticket) {
+            generateQRCode(response.props.ticket);
+          }
+        },
+        onError: (errors) => {
+          console.log('Form errors:', errors);
+          form.errors = errors;
+        },
+      });
+    }
+  } catch (error) {
+    console.error('Error submitting form:', error);
+    form.errors = { submit: ['An error occurred while submitting the form.'] };
+  }
+};
+
+// QR Code functions
 const generateQRCode = async (ticket) => {
   try {
-    const qrData = {
-      id: ticket.id,
+    ticketNumber.value = ticket.ticket_number;
+    const qrData = JSON.stringify({
+      ticket_id: ticket.id,
       ticket_number: ticket.ticket_number,
       customer_name: ticket.customer_name,
-      vehicle_make: ticket.vehicle_make,
-      vehicle_model: ticket.vehicle_model,
-      vehicle_color: ticket.vehicle_color,
       license_plate: ticket.license_plate,
-      parking_spot: ticket.parking_spot,
-      notes: ticket.notes,
-      created_at: new Date().toISOString(),
-    };
-
-    // Generate QR code as data URL
-    qrCodeUrl.value = await QRCode.toDataURL(JSON.stringify(qrData), {
-      width: 200,
-      margin: 2,
-      color: {
-        dark: '#000000',
-        light: '#ffffff'
-      }
     });
 
-    // Set ticket number for display
-    ticketNumber.value = ticket.ticket_number;
+    // Generate QR code as data URL
+    qrCodeUrl.value = await QRCode.toDataURL(qrData, {
+      errorCorrectionLevel: 'H',
+      width: 200,
+      margin: 1
+    });
     
-    // Show the modal
     showQRModal.value = true;
     
     // Wait for the next tick to ensure the canvas is rendered
     await nextTick();
     
-    // Draw the QR code on the canvas for printing
+    // Generate QR code for the canvas
     if (qrCanvas.value) {
-      const ctx = qrCanvas.value.getContext('2d');
-      const img = new Image();
-      img.src = qrCodeUrl.value;
-      await new Promise((resolve) => {
-        img.onload = () => {
-          qrCanvas.value.width = img.width;
-          qrCanvas.value.height = img.height;
-          ctx.drawImage(img, 0, 0);
-          resolve();
-        };
+      await QRCode.toCanvas(qrCanvas.value, qrData, {
+        errorCorrectionLevel: 'H',
+        width: 200,
+        margin: 1
       });
     }
   } catch (error) {
@@ -459,53 +560,8 @@ const downloadQRCode = () => {
   document.body.removeChild(link);
 };
 
-const submit = async () => {
-  // If location is not ready, try to get it first
-  if (!isLocationReady.value) {
-    locationStatus.value = 'Getting your location...';
-    try {
-      await getLocation();
-      if (!isLocationReady.value) {
-        locationStatus.value = 'Location is required. Please enable location services and try again.';
-        return;
-      }
-    } catch (error) {
-      locationStatus.value = 'Error getting location. Please try again.';
-      return;
-    }
-  }
-
-  try {
-    await form.post(route('tenant.tickets.store'), {
-      preserveScroll: true,
-      onSuccess: (response) => {
-        // If we have a ticket in the response, show the QR code
-        if (response.props.ticket) {
-          generateQRCode(response.props.ticket);
-        } else if (response.data) {
-          // Handle non-Inertia responses
-          try {
-            const responseData = typeof response.data === 'string' 
-              ? JSON.parse(response.data) 
-              : response.data;
-              
-            if (responseData.ticket) {
-              generateQRCode(responseData.ticket);
-            }
-          } catch (e) {
-            console.error('Error parsing response:', e);
-            form.errors = { submit: ['Error processing the ticket.'] };
-          }
-        }
-      },
-      onError: (errors) => {
-        console.log('Form errors:', errors);
-        form.errors = errors;
-      },
-    });
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    form.errors = { submit: ['An error occurred while submitting the form.'] };
-  }
-};
+// Get location when component mounts
+onMounted(() => {
+  getLocation();
+});
 </script>

@@ -67,6 +67,32 @@
             </div>
           </div>
 
+           <div class="my-8 mx-6">
+              <h4 class="text-md font-medium text-gray-900 mb-4">Vehicle Images</h4>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div v-for="(image, index) in ticket.images" :key="image.id" class="relative group">
+                  <img 
+                    :src="'/storage/' + image.path" 
+                    :alt="'Vehicle image ' + (index + 1)"
+                    class="h-40 w-full object-cover rounded-md shadow-sm"
+                  >
+                  <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-md transition-opacity">
+                    <a 
+                      :href="'/storage/' + image.path" 
+                      target="_blank" 
+                      class="text-white p-2 hover:text-gray-200"
+                      title="View Full Size"
+                    >
+                      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
           <div class="px-6 py-5 border-t border-gray-200 bg-gray-50">
             <h3 class="text-lg font-medium text-gray-900">Additional Information</h3>
             <p class="mt-1 text-sm text-gray-500">Special instructions and notes for this ticket.</p>
