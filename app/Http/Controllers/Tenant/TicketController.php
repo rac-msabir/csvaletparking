@@ -63,53 +63,79 @@ class TicketController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $directory = 'ticket-images';
-                $filename = 'ticket_' . $ticket->id . '_' . time() . '_' . $image->getClientOriginalName();
-                $path = $directory . '/' . $filename;
+                try {
+                    $directory = 'ticket-images';
+                    $filename = 'ticket_' . $ticket->id . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                    $path = $directory . '/' . $filename;
 
-                // Store in S3 bucket with public visibility
-                Storage::disk('s3')->put($path, file_get_contents($image), 'public');
+                    // Store in S3 bucket with public visibility
+                    Storage::disk('s3')->put($path, file_get_contents($image), 'public');
 
-                // Get the full public URL
-                $bucket = config('filesystems.disks.s3.bucket');
-                $endpoint = rtrim(config('filesystems.disks.s3.endpoint'), '/');
-                $publicUrl = "{$endpoint}/{$bucket}/{$path}";
+                    // Get the S3 client
+                    $s3Client = new \Aws\S3\S3Client([
+                        'version' => 'latest',
+                        'region' => config('filesystems.disks.s3.region'),
+                        'credentials' => [
+                            'key' => config('filesystems.disks.s3.key'),
+                            'secret' => config('filesystems.disks.s3.secret'),
+                        ],
+                        'endpoint' => config('filesystems.disks.s3.endpoint'),
+                        'use_path_style_endpoint' => true,
+                    ]);
 
-                $ticket->images()->create([
-                    'path' => $path,
-                    'url' => $publicUrl,
-                    'original_name' => $image->getClientOriginalName(),
-                    'mime_type' => $image->getClientMimeType(),
-                    'size' => $image->getSize(),
-                    'uploaded_by' => auth()->id(),
+                    // Create a command to get the object
+                    $command = $s3Client->getCommand('GetObject', [
+                        'Bucket' => config('filesystems.disks.s3.bucket'),
+                        'Key' => $path
+                    ]);
+
+                    // Create a signed URL that's valid for 1 year
+                    $signedUrl = (string) $s3Client->createPresignedRequest(
+                        $command,
+                        '+7 days'  // Maximum allowed by AWS S3
+                    )->getUri();
+
+
+                    $ticket->images()->create([
+                        'path' => $path,
+                        'url' => $signedUrl,  // Store the signed URL
+                        'original_name' => $image->getClientOriginalName(),
+                        'mime_type' => $image->getClientMimeType(),
+                        'size' => $image->getSize(),
+                        'uploaded_by' => auth()->id(),
+                    ]);
+                } catch (\Exception $e) {
+                    \Log::error('Error uploading image: ' . $e->getMessage());
+                    throw $e; // Re-throw to see the full error in development
+                }
+
+
+                // Rest of your code (QR code generation, etc.)
+                if (empty($ticket->ticket_number)) {
+                    $ticket->update([
+                        'ticket_number' => 'TKT-' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT)
+                    ]);
+                }
+
+                $qrCodePath = $this->generateQrCode($ticket);
+                $ticket->update([
+                    'qr_code_path' => $qrCodePath
+                ]);
+
+                if ($ticket->customer_phone) {
+                    try {
+                        $ticket->notify(new WhatsAppTicketCreated($ticket));
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to send WhatsApp notification: ' . $e->getMessage());
+                    }
+                }
+
+                return Inertia::render('Tenant/Tickets/Create', [
+                    'ticket' => $ticket->fresh(),
+                    'success' => 'Ticket created successfully.'
                 ]);
             }
         }
-
-        // Rest of your code (QR code generation, etc.)
-        if (empty($ticket->ticket_number)) {
-            $ticket->update([
-                'ticket_number' => 'TKT-' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT)
-            ]);
-        }
-
-        $qrCodePath = $this->generateQrCode($ticket);
-        $ticket->update([
-            'qr_code_path' => $qrCodePath
-        ]);
-
-        if ($ticket->customer_phone) {
-            try {
-                $ticket->notify(new WhatsAppTicketCreated($ticket));
-            } catch (\Exception $e) {
-                \Log::error('Failed to send WhatsApp notification: ' . $e->getMessage());
-            }
-        }
-
-        return Inertia::render('Tenant/Tickets/Create', [
-            'ticket' => $ticket->fresh(),
-            'success' => 'Ticket created successfully.'
-        ]);
     }
 
     protected function generateQrCode($ticket)
