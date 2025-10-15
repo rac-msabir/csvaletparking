@@ -22,16 +22,33 @@
               <div class="grid grid-cols-6 gap-6">
                 
 
-                <!-- Phone -->
+                <!-- Phone with Country Code -->
                 <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Customer Phone Number </label>
-                  <input
-                    type="tel"
-                    v-model="form.customer_phone"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    :class="{ 'border-red-500': form.errors.customer_phone }"
-                    placeholder="+1 (555) 123-4567"
-                  />
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Customer Phone Number</label>
+                  <div class="mt-1 flex rounded-md shadow-sm">
+                    <div class="relative flex-grow">
+                      <div class="absolute inset-y-0 left-0 flex items-center">
+                        <label for="country" class="sr-only">Country</label>
+                        <div class="h-full py-0 pl-3 pr-2 border-r border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 sm:text-sm">
+                          🇸🇦 +966
+                        </div>
+                      </div>
+                      <input
+                        type="tel"
+                        v-model="localPhoneNumber"
+                        class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md"
+                        :class="{ 'border-red-500': form.errors.customer_phone || (localPhoneNumber && localPhoneNumber.length < 9) }"
+                        placeholder="5XXXXXXXX"
+                        pattern="[0-9]{9,10}"
+                        minlength="9"
+                        maxlength="10"
+                        inputmode="numeric"
+                        @input="handlePhoneInput"
+                        @keydown="(e) => { if (!/^[0-9\b]+$/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') e.preventDefault() }"
+                      />
+                    </div>
+                  
+                  </div>
                   <p v-if="form.errors.customer_phone" class="mt-1 text-sm text-red-600">
                     {{ form.errors.customer_phone }}
                   </p>
@@ -66,7 +83,6 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.vehicle_model }"
                     placeholder="Camry"
-                    required
                   />
                   <p v-if="form.errors.vehicle_model" class="mt-1 text-sm text-red-600">
                     {{ form.errors.vehicle_model }}
@@ -82,7 +98,6 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.license_plate }"
                     placeholder="ABC123"
-                    required
                   />
                   <p v-if="form.errors.license_plate" class="mt-1 text-sm text-red-600">
                     {{ form.errors.license_plate }}
@@ -269,6 +284,23 @@ const qrCanvas = ref(null);
 const qrCodeElement = ref(null);
 const qrCodeUrl = ref('');
 const ticketNumber = ref('');
+const localPhoneNumber = ref('');
+
+// Handle phone number input
+const handlePhoneInput = () => {
+  // Remove any non-digit characters and limit to 10 digits
+  const digits = localPhoneNumber.value.replace(/\D/g, '').substring(0, 10);
+  
+  // Update the displayed value (this will be just the local number)
+  localPhoneNumber.value = digits;
+  
+  // Format the full phone number with country code if valid
+  if (digits.length >= 9) { // Saudi numbers are 9 digits (5XXXXXXXX) or 10 digits (05XXXXXXXX)
+    form.customer_phone = '966' + (digits.startsWith('0') ? digits.substring(1) : digits);
+  } else {
+    form.customer_phone = '';
+  }
+};
 const isPrinting = ref(false);
 
 // Reset QR code data when modal is closed
@@ -547,6 +579,25 @@ const downloadQRCode = () => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// Format phone number to ensure it's in the correct format
+const formatPhoneNumber = () => {
+  // Remove any non-digit characters
+  let phone = form.customer_phone.replace(/\D/g, '');
+  
+  // If it starts with 0, replace it with 966
+  if (phone.startsWith('0')) {
+    phone = '966' + phone.substring(1);
+  }
+  
+  // If it doesn't start with 966, add it
+  if (!phone.startsWith('966')) {
+    phone = '966' + phone;
+  }
+  
+  // Update the form field
+  form.customer_phone = phone;
 };
 
 // Get location when component mounts

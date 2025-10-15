@@ -25,17 +25,19 @@ class WhatsAppTicketCreated extends Notification implements ShouldQueue
     public function toWhatsApp($notifiable)
     {
         $createdAt = $this->ticket->created_at->timezone('Asia/Riyadh')->format('Y-m-d h:i A');
-        
-        $message = "*New ticket/تذكرة جديدة*\n\n";
-        $message .= "حياك الله مع نوا - شركة الرقي المتطورة لخدمة صف السيارات\n";
-        $message .= "تقدر تطلع على التفاصيل وتطلب سيارتك باستخدام الرابط\n\n";
-        $message .= "Welcome to Nua - Advanced Prestige valet services\n";
-        $message .= "You may checkout the details and request your car via this link\n\n";
-        $message .= "رقم التذكرة (Ticket No)\n";
-        $message .= "{$this->ticket->ticket_number}\n";
-        $message .= "{$createdAt}\n";
-        $message .= $this->ticket->public_url;
 
-        return $message;
+        return <<<MSG
+New ticket/تذكرة جديدة
+حياك الله مع مكتب مبيعات الدرعية - شركة التحفة اللامعة لصف السيارات
+تقدر تطلع على التفاصيل وتطلب سيارتك باستخدام الرابط
+
+Welcome to Sales center Diriyah - CS Valet Parking valet services
+You may checkout the details and request your car via this link
+
+رقم التذكرة (Ticket No)
+{$this->ticket->ticket_number}
+{$createdAt}
+{$this->ticket->public_url}
+MSG;
     }
 }

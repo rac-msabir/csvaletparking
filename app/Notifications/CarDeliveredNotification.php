@@ -23,16 +23,14 @@ class CarDeliveredNotification extends Notification implements ShouldQueue
         return ['whatsapp'];
     }
 
-    public function toWhatsApp($notifiable)
-    {
-        $tenantPhone = $this->ticket->tenant->phone ?? '0547277708';
-    
-        $message = "شكرا لزيارتك نوا واستخدامك خدمة شركة الرقي المتطورة ، للشكاوى على خدمة صف السيارات يرجى الاتصال على الرقم\t{$tenantPhone}\n";
-        $message .= "رافقتك السلامة";
-        $message .= "\n\nThanks for visiting Nua and using Advanced Prestige.\t";
-        $message .= "For complaints about valet services, please contact {$tenantPhone}.\t";
-        $message .= "We wish you a safe journey!";
+public function toWhatsApp($notifiable)
+{
+    return <<<MSG
+تم تسليم سيارتك
+شكرا لزيارتك مكتب مبيعات الدرعية واستخدامك خدمة شركة التحفة اللامعة لصف السيارات ، رافقتك السلامة
 
-        return $message;
-    }
+Your car has been delivered 
+Thanks for visiting Sales center Diriyah and using CS Valet Parking, we wish you a safe journey
+MSG;
+}
 }

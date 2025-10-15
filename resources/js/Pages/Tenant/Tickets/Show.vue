@@ -20,9 +20,23 @@
             <div class="grid grid-cols-6 gap-6">
               <div class="col-span-6 sm:col-span-2">
                 <p class="block text-sm font-medium text-gray-700 mb-1">Customer Phone Number</p>
-                <p class="mt-1 bg-white p-3 border border-gray-300 rounded-md">{{ ticket.customer_phone }}</p>
+                <div class="mt-1 flex rounded-md shadow-sm">
+                  <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 flex items-center">
+                      <label for="country" class="sr-only">Country</label>
+                      <div class="h-full py-0 pl-3 pr-2 border-r border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 sm:text-sm">
+                        🇸🇦 +966
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      :value="formatPhoneNumber(ticket.customer_phone)"
+                      readonly
+                      class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md bg-gray-50"
+                    />
+                  </div>
+                </div>
               </div>
-  
             </div>
           </div>
 
@@ -97,6 +111,12 @@ const props = defineProps({
   ticket: { type: Object, required: true },
   activities: { type: Array, default: () => [] },
 });
+
+const formatPhoneNumber = (value) => {
+  if (!value) return '';
+  const phone = String(value).replace(/\D/g, '');
+  return phone.replace(/^966/, '').replace(/^0/, '');
+};
 
 const formatDateTime = (value) => {
   if (!value) return 'N/A';

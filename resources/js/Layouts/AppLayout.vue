@@ -14,8 +14,8 @@ defineProps({
 
 const showingNavigationDropdown = ref(false);
 const showSiteDropdown = ref(false);
-const selectedSite = ref(localStorage.getItem('uv:selectedSite') || 'Nua');
-const sites = computed(() => [{ label: 'Nua', value: 'nua' }]);
+const selectedSite = ref(localStorage.getItem('uv:selectedSite') || 'Sales Center Diriyah');
+const sites = computed(() => [{ label: 'Sales Center Diriyah', value: 'sales-center-diriyah' }]);
 const chooseSite = (site) => {
     selectedSite.value = site.label;
     showSiteDropdown.value = false;

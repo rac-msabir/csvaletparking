@@ -26,8 +26,9 @@ class CarReadyNotification extends Notification implements ShouldQueue
 
     public function toWhatsApp($notifiable)
     {
-        $message = "شكراً لاستخدامكم خدمتنا\n\n";
-        $message .= "Your car is ready! Please pick it up";
-        return $message;
+        return <<<MSG
+سيارتك جاهزة! تفضل باستلامها
+Your car is ready! please pick it up
+MSG;
     }
 }

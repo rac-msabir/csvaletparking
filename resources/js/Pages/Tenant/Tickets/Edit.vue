@@ -21,17 +21,32 @@
             
             <div class="px-6 py-5">
               <div class="grid grid-cols-6 gap-6">
-                <!-- Phone -->
+                <!-- Phone with Country Code -->
                 <div class="col-span-6 sm:col-span-2">
-                  <label for="customer_phone" class="block text-sm font-medium text-gray-700 mb-1">Customer Phone Number</label>
-                  <input
-                    type="tel"
-                    id="customer_phone"
-                    v-model="form.customer_phone"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    :class="{ 'border-red-500': form.errors.customer_phone }"
-                    required
-                  />
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Customer Phone Number</label>
+                  <div class="mt-1 flex rounded-md shadow-sm">
+                    <div class="relative flex-grow">
+                      <div class="absolute inset-y-0 left-0 flex items-center">
+                        <label for="country" class="sr-only">Country</label>
+                        <div class="h-full py-0 pl-3 pr-2 border-r border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 sm:text-sm">
+                          🇸🇦 +966
+                        </div>
+                      </div>
+                      <input
+                        type="tel"
+                        v-model="localPhoneNumber"
+                        class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md"
+                        :class="{ 'border-red-500': form.errors.customer_phone || (localPhoneNumber && localPhoneNumber.length < 9) }"
+                        placeholder="5XXXXXXXX"
+                        pattern="[0-9]{9,10}"
+                        minlength="9"
+                        maxlength="10"
+                        inputmode="numeric"
+                        @input="handlePhoneInput"
+                        @keydown="(e) => { if (!/^[0-9\b]+$/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'Tab') e.preventDefault() }"
+                      />
+                    </div>
+                  </div>
                   <p v-if="form.errors.customer_phone" class="mt-1 text-sm text-red-600">
                     {{ form.errors.customer_phone }}
                   </p>
@@ -51,7 +66,6 @@
                     v-model="form.vehicle_make"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.vehicle_make }"
-                    required
                   />
                   <p v-if="form.errors.vehicle_make" class="mt-1 text-sm text-red-600">
                     {{ form.errors.vehicle_make }}
@@ -67,7 +81,6 @@
                     v-model="form.vehicle_model"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.vehicle_model }"
-                    required
                   />
                   <p v-if="form.errors.vehicle_model" class="mt-1 text-sm text-red-600">
                     {{ form.errors.vehicle_model }}
@@ -84,7 +97,6 @@
                     v-model="form.license_plate"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.license_plate }"
-                    required
                   />
                   <p v-if="form.errors.license_plate" class="mt-1 text-sm text-red-600">
                     {{ form.errors.license_plate }}
@@ -171,7 +183,7 @@
 
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
-import { defineProps } from 'vue';
+import { ref, onMounted } from 'vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
@@ -179,6 +191,21 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+});
+
+// Initialize localPhoneNumber with the local part of the phone number
+const localPhoneNumber = ref('');
+
+// Extract the local part from the stored phone number when component mounts
+onMounted(() => {
+  if (props.ticket.customer_phone) {
+    // Convert to string and remove any non-digit characters
+    let phone = String(props.ticket.customer_phone).replace(/\D/g, '');
+    // Remove country code if present
+    phone = phone.replace(/^966/, '');
+    // Remove leading zero if present
+    localPhoneNumber.value = phone.startsWith('0') ? phone.substring(1) : phone;
+  }
 });
 
 const form = useForm({
@@ -190,8 +217,28 @@ const form = useForm({
   special_instructions: props.ticket.special_instructions,
 });
 
-const submit = () => {
+// Handle phone number input
+const handlePhoneInput = () => {
+  // Remove any non-digit characters and limit to 10 digits
+  const digits = localPhoneNumber.value.replace(/\D/g, '').substring(0, 10);
+  
+  // Update the displayed value (this will be just the local number)
+  localPhoneNumber.value = digits;
+  
+  // Format the full phone number with country code if valid
+  if (digits.length >= 9) { // Saudi numbers are 9 digits (5XXXXXXXX) or 10 digits (05XXXXXXXX)
+    form.customer_phone = '966' + (digits.startsWith('0') ? digits.substring(1) : digits);
+  } else {
+    form.customer_phone = '';
+  }
+};
 
+const submit = () => {
+  if (localPhoneNumber.value && localPhoneNumber.value.length < 9) {
+    // Don't submit if the phone number is too short
+    return;
+  }
+  
   console.log(form.data());
   form.put(route('tenant.tickets.update', props.ticket.id));
 };

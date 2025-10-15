@@ -297,8 +297,8 @@ const props = defineProps({
 
 /* Site selector */
 const siteOpen = ref(false);
-const sites = computed(() => (props.sites && props.sites.length ? props.sites : [{ label: props.currentSite || 'Nua', value: props.currentSite || 'nua' }]));
-const selectedSite = ref(localStorage.getItem('uv:selectedSite') || (sites.value[0]?.label || 'Nua'));
+const sites = computed(() => (props.sites && props.sites.length ? props.sites : [{ label: props.currentSite || 'Sales Center Diriyah', value: props.currentSite || 'sales-center-diriyah' }]));
+const selectedSite = ref(localStorage.getItem('uv:selectedSite') || (sites.value[0]?.label || 'Sales Center Diriyah'));
 const chooseSite = (site) => {
   selectedSite.value = site.label;
   siteOpen.value = false;

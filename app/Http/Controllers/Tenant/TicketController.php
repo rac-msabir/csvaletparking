@@ -206,7 +206,13 @@ class TicketController extends Controller
         //     abort(403);
         // }
 
+       $user = Auth::user();
         $validated = $request->validated();
+
+        // If user is a tenant admin, use their user_id as tenant_id
+        if ($user->is_tenant_admin) {
+            $validated['tenant_id'] = $user->id;
+        }
 
         // Update the ticket with validated data
         $ticket->update($validated);
