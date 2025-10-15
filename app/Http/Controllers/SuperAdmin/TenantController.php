@@ -49,6 +49,7 @@ class TenantController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'domain' => 'nullable|string|max:255',
@@ -73,6 +74,7 @@ class TenantController extends Controller
             'password' => Hash::make(Str::random(16)),
             'is_active' => $isActive,
             'is_tenant_admin' => true,
+            'address' => $validated['address'] ?? null,
             'email_verified_at' => now(),
         ]);
 

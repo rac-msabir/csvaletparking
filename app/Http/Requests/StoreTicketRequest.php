@@ -47,7 +47,7 @@ class StoreTicketRequest extends FormRequest
             'check_in_longitude' => 'nullable|numeric|between:-180,180',
             'check_out_latitude' => 'nullable|numeric|between:-90,90',
             'check_out_longitude' => 'nullable|numeric|between:-180,180',
-            'tenant_id' => 'nullable|exists:tenants,id',
+            'tenant_id' => 'nullable|exists:users,id',
             'assigned_to' => 'nullable|exists:users,id',
             'delivered_by' => 'nullable|exists:users,id',
             'created_by' => 'nullable|exists:users,id',
