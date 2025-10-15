@@ -11,38 +11,42 @@ use App\Http\Controllers\Public\TicketController as PublicTicketController;
 use Inertia\Inertia;
 use App\Http\Controllers\SuperAdmin\SuspiciousLoginController;
 
-// Admin Authentication Routes
-Route::prefix('admin')->group(function () {
-    Route::get('/login', [AdminLoginController::class, 'create'])
-        ->middleware('guest')
-        ->name('admin.login');
+// Authentication Routes
+Route::middleware('guest')->group(function () {
+    // Admin Login
+    Route::prefix('admin')->group(function () {
+        Route::get('/login', [AdminLoginController::class, 'create'])
+            ->name('admin.login');
+            
+        Route::post('/login', [AdminLoginController::class, 'store']);
+    });
 
-    Route::post('/login', [AdminLoginController::class, 'store']); //wrong
-    Route::post('/logout', [AdminLoginController::class, 'destroy'])
-        ->middleware('auth')
+    // Employee Login
+    Route::prefix('employee')->group(function () {
+        Route::get('/login', [AdminLoginController::class, 'create'])
+            ->middleware('active')
+            ->name('employee.login');
+            
+        Route::post('/login', [AdminLoginController::class, 'store']);
+    });
+
+    // Public ticket view route
+    Route::get('/tickets/{token}', [PublicTicketController::class, 'show'])
+        ->middleware('active')
+        ->name('tickets.public.show');
+
+    // Redirect root to admin login
+    Route::get('/', function () {
+        return redirect()->route('admin.login');
+    });
+});
+
+// Logout Routes
+Route::middleware('auth')->group(function () {
+    Route::post('/admin/logout', [AdminLoginController::class, 'destroy'])
         ->name('admin.logout');
-});
-
-// Public ticket view route
-Route::get('/tickets/{token}', [PublicTicketController::class, 'show'])
-    ->middleware('active')
-    ->name('tickets.public.show');
-
-// Redirect root to admin login
-Route::get('/', function () {
-    return redirect()->route('admin.login');
-});
-
-// Employee Authentication Routes
-Route::prefix('employee')->group(function () {
-    Route::get('/login', [AdminLoginController::class, 'store'])
-        ->middleware('guest', 'active')
-        ->name('employee.login');
-
-    Route::post('/login', [EmployeeTicketController::class, 'store']); //wrong
-
-    Route::post('/logout', [EmployeeTicketController::class, 'destroy'])
-        ->middleware('auth')
+        
+    Route::post('/employee/logout', [EmployeeTicketController::class, 'destroy'])
         ->name('employee.logout');
 });
 

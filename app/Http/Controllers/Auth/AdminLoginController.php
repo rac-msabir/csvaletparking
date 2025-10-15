@@ -5,12 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 use Laravel\Fortify\Http\Requests\LoginRequest;
-use Laravel\Fortify\Http\Responses\LoginResponse;
-use Laravel\Fortify\Http\Responses\FailedPasswordConfirmationResponse;
-use Laravel\Fortify\Http\Responses\FailedTwoFactorLoginResponse;
-use Laravel\Fortify\Http\Responses\TwoFactorLoginResponse;
-use Laravel\Fortify\Features;
 
 class AdminLoginController extends Controller
 {
@@ -19,16 +15,21 @@ class AdminLoginController extends Controller
      *
      * @return \Illuminate\View\View
      */
+    /**
+     * Show the admin login form.
+     *
+     * @return \Inertia\Response
+     */
     public function create()
     {
-        return view('auth.admin-login');
+        return Inertia::render('Auth/AdminLogin');
     }
 
     /**
      * Handle an authentication attempt.
      *
      * @param  \Laravel\Fortify\Http\Requests\LoginRequest  $request
-     * @return mixed
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function store(LoginRequest $request)
     {

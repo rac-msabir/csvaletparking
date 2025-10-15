@@ -7,12 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
 
 class ProfileController extends Controller
 {
     public function show()
     {
-        return view('super-admin.profile.show');
+        return Inertia::render('SuperAdmin/Profile/Show');
     }
 
     public function update(Request $request)

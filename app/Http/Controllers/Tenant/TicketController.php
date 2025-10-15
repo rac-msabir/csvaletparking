@@ -249,9 +249,11 @@ class TicketController extends Controller
             abort(403, 'You are not authorized to view this ticket.');
         }
 
-        return view('tickets.print', [
+        return Inertia::render('Tenant/Tickets/Print', [
             'ticket' => $ticket,
             'qrCodeUrl' => $ticket->qr_code_path ? Storage::url($ticket->qr_code_path) : null,
+            'appName' => config('app.name'),
+            'appUrl' => config('app.url')
         ]);
     }
 
