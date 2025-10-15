@@ -2,7 +2,7 @@
   <div class="space-y-4">
     <Link 
       :href="route('employee.login')" 
-      class="block w-full px-4 py-2 text-center text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+      class="block w-full px-4 py-2 text-center text-sm font-medium text-white bg-primary rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
     >
       Employee Login
     </Link>

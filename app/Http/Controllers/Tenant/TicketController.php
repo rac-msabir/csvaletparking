@@ -110,10 +110,6 @@ class TicketController extends Controller
         ]);
 
         $directory = 'qrcodes/tickets';
-        if (!Storage::disk('public')->exists($directory)) {
-            Storage::disk('public')->makeDirectory($directory);
-        }
-
         $filename = 'ticket_' . $ticket->ticket_number . '_' . time() . '.svg';
         $path = $directory . '/' . $filename;
 
@@ -124,9 +120,16 @@ class TicketController extends Controller
         $writer = new Writer($renderer);
         $svg = $writer->writeString($qrContent);
 
-        Storage::disk('public')->put($path, $svg);
+        // Store in S3 bucket with public visibility
+        Storage::disk('s3')->put($path, $svg, 'public');
 
-        return $path;
+        // Get the full public URL to the stored file
+        // For Cloudflare R2, we'll construct the URL manually since the url() method might not work as expected
+        $bucket = config('filesystems.disks.s3.bucket');
+        $endpoint = rtrim(config('filesystems.disks.s3.endpoint'), '/');
+        
+        // Return the full public URL
+        return "{$endpoint}/{$bucket}/{$path}";
     }
 
     /**

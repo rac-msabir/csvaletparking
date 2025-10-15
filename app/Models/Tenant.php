@@ -104,7 +104,10 @@ class Tenant extends Model
             return $this->logo;
         }
 
-        return \Storage::disk('public')->url($this->logo);
+        // For Cloudflare R2, we'll construct the URL manually
+        $bucket = config('filesystems.disks.s3.bucket');
+        $endpoint = rtrim(config('filesystems.disks.s3.endpoint'), '/');
+        return "{$endpoint}/{$bucket}/{$this->logo}";
     }
 
     /**

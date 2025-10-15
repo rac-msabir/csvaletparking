@@ -217,19 +217,19 @@ class TicketImage extends Model
         static::deleting(function ($image) {
             // If soft deleting, don't delete the actual file
             if ($image->isForceDeleting()) {
-                // Delete the file from storage
+                // Delete the file from S3 storage
                 if ($image->path) {
-                    \Storage::disk(config('filesystems.default'))->delete($image->path);
+                    \Storage::disk('s3')->delete($image->path);
                 }
                 
                 // Delete the thumbnail if it exists
                 if ($image->thumbnail_path) {
-                    \Storage::disk(config('filesystems.default'))->delete($image->thumbnail_path);
+                    \Storage::disk('s3')->delete($image->thumbnail_path);
                 }
                 
                 // Delete the medium image if it exists
                 if ($image->medium_path) {
-                    \Storage::disk(config('filesystems.default'))->delete($image->medium_path);
+                    \Storage::disk('s3')->delete($image->medium_path);
                 }
             }
         });

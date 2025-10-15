@@ -213,7 +213,10 @@ class Ticket extends Model
             return $this->qr_code_path;
         }
 
-        return \Storage::disk('public')->url($this->qr_code_path);
+        // For Cloudflare R2, construct the URL manually
+        $bucket = config('filesystems.disks.s3.bucket');
+        $endpoint = rtrim(config('filesystems.disks.s3.endpoint'), '/');
+        return "{$endpoint}/{$bucket}/{$this->qr_code_path}";
     }
 
     /**

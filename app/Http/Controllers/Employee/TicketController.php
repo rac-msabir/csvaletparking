@@ -99,13 +99,8 @@ class TicketController extends Controller
             ]
         ]);
 
-        // Create directory if it doesn't exist
-        $directory = 'qrcodes/tickets';
-        if (!Storage::disk('public')->exists($directory)) {
-            Storage::disk('public')->makeDirectory($directory);
-        }
-
         // Generate unique filename
+        $directory = 'qrcodes/tickets';
         $filename = 'ticket_' . $ticket->ticket_number . '_' . time() . '.svg';
         $path = $directory . '/' . $filename;
 
@@ -117,10 +112,15 @@ class TicketController extends Controller
         $writer = new Writer($renderer);
         $svg = $writer->writeString($qrContent);
 
-        // Save the QR code
-        Storage::disk('public')->put($path, $svg);
+        // Store in S3 bucket with public visibility
+        Storage::disk('s3')->put($path, $svg, 'public');
 
-        return $path;
+        // Get the full public URL to the stored file
+        $bucket = config('filesystems.disks.s3.bucket');
+        $endpoint = rtrim(config('filesystems.disks.s3.endpoint'), '/');
+        
+        // Return the full public URL
+        return "{$endpoint}/{$bucket}/{$path}";
     }
 
     public function index()
