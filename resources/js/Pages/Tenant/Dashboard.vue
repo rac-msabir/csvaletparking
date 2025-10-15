@@ -43,8 +43,8 @@
         <div class="mt-6 md:mt-8">
           <div class="rounded-2xl bg-white shadow border border-gray-100 px-4 md:px-6 py-6">
             <div class="flex flex-col md:flex-row md:items-center md:space-x-6 space-y-4 md:space-y-0">
-              <div class="flex-1 flex space-x-3">
-                <div class="w-48">
+              <div class="flex-1 flex flex-col md:flex-row gap-3 md:gap-0">
+                <div class="w-full md:w-48">
                   <select v-model="searchBy" class="block w-full h-12 rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 text-gray-700">
                     <option disabled value="">Select Search By</option>
                     <option value="phone">Customer Phone Number</option>
@@ -52,8 +52,8 @@
                     <option value="plate">Car Plate</option>
                   </select>
                 </div>
-                <div class="flex-1">
-                  <input v-model="searchQuery" :placeholder="searchPlaceholder" class="block w-full h-12 rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 px-4" />
+                <div class="w-full">
+                  <input v-model="searchQuery" :placeholder="searchPlaceholder" class="block w-full h-12 rounded-xl border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 px-4 md:ml-3" />
                 </div>
               </div>
             </div>

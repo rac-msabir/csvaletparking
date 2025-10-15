@@ -15,72 +15,35 @@
           <form id="ticket-form" @submit.prevent="submit" enctype="multipart/form-data">
             <!-- Customer Information Section -->
             <div class="px-6 py-5 border-b border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">Customer Information</h3>
-              <p class="mt-1 text-sm text-gray-500">Customer details for this ticket.</p>
+              <h3 class="text-lg font-medium text-gray-900">Customer Info</h3>
             </div>
             
             <div class="px-6 py-5">
               <div class="grid grid-cols-6 gap-6">
-                <!-- Name -->
-                <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-                  <input
-                    type="text"
-                    v-model="form.customer_name"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    :class="{ 'border-red-500': form.errors.customer_name }"
-                    placeholder="John Doe"
-                    required
-                  />
-                  <p v-if="form.errors.customer_name" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.customer_name }}
-                  </p>
-                </div>
+                
 
                 <!-- Phone -->
                 <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Phone *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Customer Phone Number </label>
                   <input
                     type="tel"
                     v-model="form.customer_phone"
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.customer_phone }"
                     placeholder="+1 (555) 123-4567"
-                    required
                   />
                   <p v-if="form.errors.customer_phone" class="mt-1 text-sm text-red-600">
                     {{ form.errors.customer_phone }}
                   </p>
                 </div>
-
-                <!-- Email -->
-                <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                  <input
-                    type="email"
-                    v-model="form.customer_email"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    :class="{ 'border-red-500': form.errors.customer_email }"
-                    placeholder="john@example.com"
-                  />
-                  <p v-if="form.errors.customer_email" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.customer_email }}
-                  </p>
-                </div>
               </div>
-            </div>
-
-            <!-- Vehicle Information Section -->
-            <div class="px-6 py-5 border-t border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900">Vehicle Information</h3>
-              <p class="mt-1 text-sm text-gray-500">Details about the customer's vehicle.</p>
             </div>
             
             <div class="px-6 pb-5">
               <div class="grid grid-cols-6 gap-6">
                 <!-- Make -->
                 <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Make *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Car Brand</label>
                   <input
                     type="text"
                     v-model="form.vehicle_make"
@@ -96,7 +59,7 @@
 
                 <!-- Model -->
                 <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Model *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Car Model</label>
                   <input
                     type="text"
                     v-model="form.vehicle_model"
@@ -110,25 +73,9 @@
                   </p>
                 </div>
 
-                <!-- Color -->
-                <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Color *</label>
-                  <input
-                    type="text"
-                    v-model="form.vehicle_color"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    :class="{ 'border-red-500': form.errors.vehicle_color }"
-                    placeholder="Red"
-                    required
-                  />
-                  <p v-if="form.errors.vehicle_color" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.vehicle_color }}
-                  </p>
-                </div>
-
                 <!-- License Plate -->
                 <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">License Plate *</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Car Plate</label>
                   <input
                     type="text"
                     v-model="form.license_plate"
@@ -141,21 +88,22 @@
                     {{ form.errors.license_plate }}
                   </p>
                 </div>
-
-                <!-- Parking Spot -->
-                <div class="col-span-6 sm:col-span-2">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Parking Spot</label>
-                  <input
-                    type="text"
-                    v-model="form.parking_spot"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="A12"
-                  />
-                  <p v-if="form.errors.parking_spot" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.parking_spot }}
-                  </p>
-                </div>
               </div>
+            
+              <!-- Notes -->
+              <div class="col-span-6 mt-6">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  v-model="form.notes"
+                  rows="3"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  placeholder="Any special instructions or notes about the vehicle..."
+                ></textarea>
+                <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">
+                  {{ form.errors.notes }}
+                </p>
+              </div>
+          
               <!-- Vehicle Images Section -->
               <div class="col-span-6 sm:col-span-2 mt-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Vehicle Images</label>
@@ -186,30 +134,7 @@
                 </div>
               </div>
             </div>
-
-            <!-- Additional Information Section -->
-            <div class="px-6 py-5 border-t border-gray-200 bg-gray-50">
-              <h3 class="text-lg font-medium text-gray-900">Additional Information</h3>
-              <p class="mt-1 text-sm text-gray-500">Any special instructions or notes.</p>
-            </div>
             
-            <div class="px-6 pb-5 bg-gray-50">
-              <div class="grid grid-cols-6 gap-6">
-                <!-- Notes -->
-                <div class="col-span-6">
-                  <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                  <textarea
-                    v-model="form.notes"
-                    rows="3"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    placeholder="Any special instructions or notes about the vehicle..."
-                  ></textarea>
-                  <p v-if="form.errors.notes" class="mt-1 text-sm text-red-600">
-                    {{ form.errors.notes }}
-                  </p>
-                </div>
-              </div>
-            </div>
 
             <!-- Form Actions -->
             <div class="px-6 py-3 bg-gray-50 text-right border-t border-gray-200">
@@ -325,19 +250,13 @@ const props = defineProps({
 });
 
 const form = useForm({
-  customer_name: '',
   customer_phone: '',
-  customer_email: '',
   vehicle_make: '',
   vehicle_model: '',
-  vehicle_color: '',
   license_plate: '',
-  parking_spot: '',
   notes: '',
   check_in_latitude: null,
   check_in_longitude: null,
-  special_instructions: '',
-  damage_notes: '',
   images: [],
 });
 
@@ -467,6 +386,7 @@ const getLocation = async () => {
 
 // Form submission
 const submit = async () => {
+  console.log(form);
   // If location is not ready, try to get it first
   if (!isLocationReady.value) {
     locationStatus.value = 'Getting your location...';
