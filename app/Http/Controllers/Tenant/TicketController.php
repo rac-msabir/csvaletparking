@@ -63,14 +63,25 @@ class TicketController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $path = $image->store('ticket-images', 'public');
+                $directory = 'ticket-images';
+                $filename = 'ticket_' . $ticket->id . '_' . time() . '_' . $image->getClientOriginalName();
+                $path = $directory . '/' . $filename;
+
+                // Store in S3 bucket with public visibility
+                Storage::disk('s3')->put($path, file_get_contents($image), 'public');
+
+                // Get the full public URL
+                $bucket = config('filesystems.disks.s3.bucket');
+                $endpoint = rtrim(config('filesystems.disks.s3.endpoint'), '/');
+                $publicUrl = "{$endpoint}/{$bucket}/{$path}";
 
                 $ticket->images()->create([
                     'path' => $path,
+                    'url' => $publicUrl,
                     'original_name' => $image->getClientOriginalName(),
                     'mime_type' => $image->getClientMimeType(),
                     'size' => $image->getSize(),
-                    'uploaded_by' => auth()->id(), // Add this line
+                    'uploaded_by' => auth()->id(),
                 ]);
             }
         }

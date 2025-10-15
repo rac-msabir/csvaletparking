@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class TicketImage extends Model
 {
@@ -29,6 +30,7 @@ class TicketImage extends Model
         'ticket_id',
         'uploaded_by',
         'path',
+        'url',
         'original_name',
         'mime_type',
         'size',
@@ -45,6 +47,27 @@ class TicketImage extends Model
      *
      * @var array<string, string>
      */
+    /**
+     * Get the URL for the image.
+     *
+     * @return string
+     */
+    public function getImageUrlAttribute()
+    {
+        // If URL is explicitly set, use it
+        if (!empty($this->url)) {
+            return $this->url;
+        }
+        
+        return null;
+    }
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+
     protected $casts = [
         'is_processed' => 'boolean',
         'size' => 'integer',

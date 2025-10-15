@@ -62,13 +62,13 @@
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div v-for="(image, index) in ticket.images" :key="image.id" class="relative group">
                   <img 
-                    :src="'/storage/' + image.path" 
+                    :src="image.url" 
                     :alt="'Vehicle image ' + (index + 1)"
                     class="h-40 w-full object-cover rounded-md shadow-sm"
                   >
                   <div class="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-md transition-opacity">
                     <a 
-                      :href="'/storage/' + image.path" 
+                      :href="image.url" 
                       target="_blank" 
                       class="text-white p-2 hover:text-gray-200"
                       title="View Full Size"
