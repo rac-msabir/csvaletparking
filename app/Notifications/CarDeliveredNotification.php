@@ -31,6 +31,8 @@ public function toWhatsApp($notifiable)
 
 Your car has been delivered 
 Thanks for visiting Sales center Diriyah and using CS Valet Parking, we wish you a safe journey
+For more information
+Cell, 966591359399
 MSG;
 }
 }
