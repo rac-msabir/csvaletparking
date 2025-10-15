@@ -35,6 +35,7 @@
                       </div>
                       <input
                         type="tel"
+                        required
                         v-model="localPhoneNumber"
                         class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md"
                         :class="{ 'border-red-500': form.errors.customer_phone || (localPhoneNumber && localPhoneNumber.length < 9) }"
@@ -67,7 +68,6 @@
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.vehicle_make }"
                     placeholder="Toyota"
-                    required
                   />
                   <p v-if="form.errors.vehicle_make" class="mt-1 text-sm text-red-600">
                     {{ form.errors.vehicle_make }}

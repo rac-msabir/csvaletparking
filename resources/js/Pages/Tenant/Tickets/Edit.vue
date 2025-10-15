@@ -34,6 +34,7 @@
                       </div>
                       <input
                         type="tel"
+                        required
                         v-model="localPhoneNumber"
                         class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md"
                         :class="{ 'border-red-500': form.errors.customer_phone || (localPhoneNumber && localPhoneNumber.length < 9) }"
