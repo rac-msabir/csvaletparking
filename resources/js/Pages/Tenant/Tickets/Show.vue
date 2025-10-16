@@ -24,7 +24,7 @@
                   <div class="relative flex-grow">
                     <div class="absolute inset-y-0 left-0 flex items-center">
                       <label for="country" class="sr-only">Country</label>
-                      <div class="h-full py-0 pl-3 pr-2 border-r border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 sm:text-sm">
+                      <div class="h-12 py-0 pl-3 pr-2 border-r border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 sm:text-sm">
                         🇸🇦 +966
                       </div>
                     </div>
@@ -32,7 +32,7 @@
                       type="text"
                       :value="formatPhoneNumber(ticket.customer_phone)"
                       readonly
-                      class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md bg-gray-50"
+                      class="h-12 focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md bg-gray-50"
                     />
                   </div>
                 </div>
@@ -44,18 +44,18 @@
             <div class="grid grid-cols-6 gap-6">
               
               <div class="col-span-6 sm:col-span-2">
-                <p class="block text_sm font-medium text-gray-700 mb-1">Car Brand</p>
-                <p class="mt-1 bg-white p-3 border border-gray-300 rounded-md">{{ ticket.vehicle_make }}</p>
+                <p class="block text-sm font-medium text-gray-700 mb-1">Car Brand</p>
+                <p class="mt-1 h-12 bg-white border border-gray-300 rounded-md">{{ ticket.vehicle_make }}</p>
               </div>
              
               <div class="col-span-6 sm:col-span-2">
-                <p class="block text_sm font-medium text-gray-700 mb-1">Car Model</p>
-                <p class="mt-1 bg-white p-3 border border-gray-300 rounded-md">{{ ticket.vehicle_model }}</p>
+                <p class="block text-sm font-medium text-gray-700 mb-1">Car Model</p>
+                <p class="mt-1 h-12 bg-white border border-gray-300 rounded-md">{{ ticket.vehicle_model }}</p>
               </div>
              
               <div class="col-span-6 sm:col-span-2">
-                <p class="block text_sm font-medium text-gray-700 mb-1">Car Plate</p>
-                <p class="mt-1 bg-white p-3 border border-gray-300 rounded-md">{{ ticket.license_plate }}</p>
+                <p class="block text-sm font-medium text-gray-700 mb-1">Car Plate</p>
+                <p class="mt-1 h-12 bg-white border border-gray-300 rounded-md">{{ ticket.license_plate }}</p>
               </div>
 
             </div>
@@ -65,14 +65,14 @@
               
                 <p class="block w-full text-sm font-medium text-gray-700 mb-1">Notes</p>
                 <div class="mt-1 bg-white p-3 border border-gray-300 rounded-md">
-                  <p class="text-gray-700">{{ ticket.special_instructions || 'No special instructions provided.' }}</p>
+                  <p class="text-gray-700 h-28">{{ ticket.special_instructions || 'No special instructions provided.' }}</p>
                 </div>
 
             </div>
           </div>
           
-           <div class="my-8 mx-6">
-              <h4 class="text-md font-medium text-gray-900 mb-4">Vehicle Images</h4>
+           <div v-if="ticket.images.length > 0" class="my-8 mx-6">
+              <h4 class="text-md font-medium text-gray-900 mb-4">Car Images</h4>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div v-for="(image, index) in ticket.images" :key="image.id" class="relative group">
                   <img 

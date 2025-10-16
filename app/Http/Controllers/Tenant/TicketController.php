@@ -130,12 +130,12 @@ class TicketController extends Controller
                     }
                 }
 
-                return Inertia::render('Tenant/Tickets/Create', [
-                    'ticket' => $ticket->fresh(),
-                    'success' => 'Ticket created successfully.'
-                ]);
             }
         }
+        return Inertia::render('Tenant/Tickets/Create', [
+            'ticket' => $ticket->fresh(),
+            'success' => 'Ticket created successfully.'
+        ]);
     }
 
     protected function generateQrCode($ticket)

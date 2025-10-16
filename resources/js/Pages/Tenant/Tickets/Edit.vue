@@ -130,8 +130,8 @@
             
             
             <!-- In Edit.vue, add this after the form fields but before the form actions -->
-            <div class="px-6 py-5 border-t border-gray-200">
-              <h3 class="text-lg font-medium text-gray-900 mb-4">Attached Images</h3>
+            <div v-if="ticket.images.length > 0" class="px-6 py-5 border-t border-gray-200">
+              <h3 class="text-lg font-medium text-gray-900 mb-4">Car Images</h3>
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div v-for="(image, index) in ticket.images" :key="image.id" class="relative group">
                   <img 
