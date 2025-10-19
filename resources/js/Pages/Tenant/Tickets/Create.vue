@@ -255,10 +255,12 @@
 <!-- Update the script section (around line 270) -->
 <script setup>
 import { useForm, Link } from '@inertiajs/vue3';
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, getCurrentInstance } from 'vue';
 import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import QRCode from 'qrcode';
 import AppLayout from '@/Layouts/AppLayout.vue';
+
+const { proxy } = getCurrentInstance();
 
 const props = defineProps({
   errors: Object,
@@ -312,7 +314,7 @@ const closeQRModal = () => {
 // Print via thermal printer
 const printViaThermal = async () => {
     if (!ticketNumber.value) {
-        toast.error('No ticket number available for printing');
+        proxy.$toast.error('No ticket number available for printing');
         return;
     }
     
@@ -331,7 +333,7 @@ const printViaThermal = async () => {
         });
         
         if (response.data.status === 'success') {
-            toast.success('Ticket sent to thermal printer successfully!');
+            proxy.$toast.success('Ticket sent to thermal printer successfully!');
         } else {
             throw new Error(response.data.message || 'Failed to print ticket');
         }
@@ -345,11 +347,11 @@ const printViaThermal = async () => {
         });
         
         if (error.code === 'ECONNABORTED') {
-            toast.error('Print request timed out. Please check the printer connection.');
+            proxy.$toast.error('Print request timed out. Please check the printer connection.');
         } else if (error.response?.status === 502) {
-            toast.error('Unable to connect to the print service. Please try again later.');
+            proxy.$toast.error('Unable to connect to the print service. Please try again later.');
         } else {
-            toast.error(`Print failed: ${error.response?.data?.message || error.message}`);
+            proxy.$toast.error(`Print failed: ${error.response?.data?.message || error.message}`);
         }
     } finally {
         isPrinting.value = false;

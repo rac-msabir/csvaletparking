@@ -296,26 +296,28 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-// import { toast } from 'vue3-toastify';
-// import 'vue3-toastify/dist/index.css';
+import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue';
+
+const { proxy } = getCurrentInstance();
 
 const props = defineProps({
   stats: Object,
   recentTickets: { type: Array, default: () => [] },
   sites: { type: Array, default: () => [] },
   currentSite: { type: String, default: '' },
+  auth: { type: Object, default: () => ({}) },
 });
 
 /* Site selector */
 const siteOpen = ref(false);
 const sites = computed(() => (props.sites && props.sites.length ? props.sites : [{ label: props.currentSite || 'Sales Center Diriyah', value: props.currentSite || 'sales-center-diriyah' }]));
 const selectedSite = ref(localStorage.getItem('uv:selectedSite') || (sites.value[0]?.label || 'Sales Center Diriyah'));
+
 const chooseSite = (site) => {
   selectedSite.value = site.label;
   siteOpen.value = false;
   localStorage.setItem('uv:selectedSite', site.label);
-  // toast.success(`Switched to ${site.label}`);
+  proxy.$toast.success(`Switched to ${site.label}`);
 };
 
 /* Tabs */
@@ -369,7 +371,7 @@ const paginatedTickets = computed(() => {
 
 /* Sort button placeholder */
 const toggleSort = () => {
-  // toast.info('Sorting not changed — demo UI');
+  // Sorting logic can be added here
 };
 
 /* Pills */
@@ -427,24 +429,29 @@ const timeOptions = Array.from({ length: 24 }, (_, i) => {
 });
 const reportFromTime = ref('12:00PM');
 const reportToTime = ref('4:00AM');
+
 const applyReport = () => {
   dateModalOpen.value = false;
-  // toast.success('Report filters applied');
+  proxy.$toast.success('Report filters applied');
 };
 
 /* Status modal */
 const statusModalOpen = ref(false);
 const selectedStatus = ref('ready');
 const activeTicket = ref(null);
+
 const openStatusModal = (t) => { 
   activeTicket.value = t; 
   if (t.status === 'pending') {
+    selectedStatus.value = 'ready';
+  } else if (t.status === 'in_progress') {
     selectedStatus.value = 'ready';
   } else if (t.status === 'ready') {
     selectedStatus.value = 'delivered';
   }
   statusModalOpen.value = true; 
 };
+
 const submitStatus = async () => {
   if (!activeTicket.value) return;
   try {
@@ -453,63 +460,160 @@ const submitStatus = async () => {
     }), {
       status: selectedStatus.value
     });
+    
     const updatedTicket = response.data.ticket;
-    const index = filteredTickets.value.findIndex(t => t.id === updatedTicket.id);
+    const index = props.recentTickets.findIndex(t => t.id === updatedTicket.id);
+    
     if (index !== -1) {
-      filteredTickets.value[index] = { ...filteredTickets.value[index], ...updatedTicket };
+      props.recentTickets[index] = { ...props.recentTickets[index], ...updatedTicket };
     }
+    
     statusModalOpen.value = false;
-    // toast.success('Ticket status updated successfully!');
+    proxy.$toast.success('Ticket status updated successfully!');
   } catch (error) {
     console.error('Error updating ticket status:', error);
     const errorMessage = error.response?.data?.message || 'Failed to update ticket status. Please try again.';
-    // toast.error(errorMessage);
+    proxy.$toast.error(errorMessage);
   }
 };
 
 /* Notifications */
 const notifications = ref([]);
+
 const showNotification = (notification) => {
-  // toast.info(
-  //   `<div class="flex flex-col"><span class="font-semibold">${notification.title}</span><span class="text-sm">${notification.message}</span>${notification.url ? `<a href="${notification.url}" class="text-blue-500 hover:underline mt-1 text-xs">View Details →</a>` : ''}</div>`,
-  //   { position: 'top-right', autoClose: 8000, hideProgressBar: false, closeOnClick: true, pauseOnHover: true, draggable: true, toastClassName: '!bg-white !text-gray-800 !shadow-lg', bodyClassName: 'p-0' }
-  // );
+  console.log('Showing notification:', notification);
+  proxy.$toast.info(
+    `<div class="flex flex-col"><span class="font-semibold">${notification.title}</span><span class="text-sm">${notification.message}</span>${notification.url ? `<a href="${notification.url}" class="text-blue-500 hover:underline mt-1 text-xs">View Details →</a>` : ''}</div>`,
+    { 
+      position: 'top-right', 
+      autoClose: 8000, 
+      hideProgressBar: false, 
+      closeOnClick: true, 
+      pauseOnHover: true, 
+      draggable: true, 
+      toastClassName: '!bg-white !text-gray-800 !shadow-lg', 
+      bodyClassName: 'p-0' 
+    }
+  );
 };
 
-let echoInstance = null;
-let channel = null;
+/* Echo/Reverb Integration */
+let userChannel = null;
+let tenantChannel = null;
+let echoInitialized = false;
+
+const setupEchoChannels = () => {
+  console.log('Setting up Echo channels...');
+  
+  if (!window.Echo) {
+    console.error('Echo is not available');
+    return false;
+  }
+
+  const userId = props.auth?.user?.id;
+  const tenantId = props.auth?.user?.tenant_id;
+
+  if (!userId) {
+    console.error('User ID not available');
+    return false;
+  }
+
+  console.log('Initializing Echo with user:', userId, 'tenant:', tenantId);
+
+  try {
+    // Subscribe to private user channel
+    userChannel = window.Echo.private(`user.${userId}`);
+    
+    userChannel
+      .subscribed(() => {
+        console.log('Successfully subscribed to user.' + userId);
+      })
+      .listen('.vehicle.requested', (data) => {
+        console.log('Received .vehicle.requested event:', data);
+        showNotification({
+          title: data.title || 'Vehicle Requested',
+          message: data.message || 'A vehicle has been requested',
+          url: data.url,
+          ticketId: data.ticket_id
+        });
+      })
+      .error((error) => {
+        console.error('Error on user channel:', error);
+      });
+
+    console.log('Subscribed to user channel');
+  } catch (error) {
+    console.error('Error setting up user channel:', error);
+    return false;
+  }
+
+  // Subscribe to private tenant channel if tenantId exists
+  if (tenantId) {
+    try {
+      tenantChannel = window.Echo.private(`tenant.${tenantId}`);
+      
+      tenantChannel
+        .subscribed(() => {
+          console.log('Successfully subscribed to tenant.' + tenantId);
+        })
+        .listen('.vehicle.requested', (data) => {
+          console.log('Received .vehicle.requested on tenant channel:', data);
+          showNotification({
+            title: data.title || 'Vehicle Requested',
+            message: data.message || 'A vehicle has been requested in your tenant',
+            url: data.url,
+            ticketId: data.ticket_id
+          });
+        })
+        .error((error) => {
+          console.error('Error on tenant channel:', error);
+        });
+
+      console.log('Subscribed to tenant channel');
+    } catch (error) {
+      console.error('Error setting up tenant channel:', error);
+    }
+  }
+
+  echoInitialized = true;
+  return true;
+};
 
 onMounted(() => {
-  const initEcho = (attempt = 0) => {
-    echoInstance = window.Echo;
-    if (!echoInstance) {
-      if (attempt < 10) setTimeout(() => initEcho(attempt + 1), 200);
-      else console.warn('Echo is not initialized after retries; skipping realtime setup.');
-      return;
-    }
-    if (!props.auth?.user?.id) return;
-    channel = echoInstance.private(`user.${props.auth.user.id}`);
-    if (channel && typeof channel.subscribed === 'function') channel.subscribed(() => { console.debug('Echo: subscribed to', `user.${props.auth.user.id}`); });
-    channel.listen('.vehicle.requested', (data) => { showNotification({ title: 'Vehicle Requested', message: data.message, url: data.url, ticketId: data.ticket_id }); });
-    if (props.auth?.user?.tenant_id) {
-      const tenantChannel = echoInstance.private(`tenant.${props.auth.user.tenant_id}`);
-      if (tenantChannel && typeof tenantChannel.subscribed === 'function') tenantChannel.subscribed(() => { console.debug('Echo: subscribed to', `tenant.${props.auth.user.tenant_id}`); });
-      tenantChannel.listen('.vehicle.requested', (data) => { showNotification({ title: 'Vehicle Requested', message: data.message, url: data.url, ticketId: data.ticket_id }); });
-    }
-  };
-  initEcho();
+  console.log('Dashboard mounted');
+  
+  if (window.Echo) {
+    setupEchoChannels();
+  } else {
+    console.log('Waiting for Echo to load...');
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    const waitForEcho = setInterval(() => {
+      attempts++;
+      if (window.Echo) {
+        console.log('Echo loaded, setting up channels');
+        setupEchoChannels();
+        clearInterval(waitForEcho);
+      } else if (attempts >= maxAttempts) {
+        console.error('Echo failed to load');
+        clearInterval(waitForEcho);
+      }
+    }, 3000);
+  }
 });
 
 onUnmounted(() => {
-  if (channel) {
-    channel.stopListening('.vehicle.requested');
-    if (echoInstance) echoInstance.leave(`user.${props.auth.user?.id}`);
+  console.log('Dashboard unmounted, cleaning up Echo');
+  if (window.Echo && echoInitialized) {
+    window.Echo.leaveAllChannels();
   }
 });
 
 const placeholderQr = '/icons/print.svg';
+
 const printTicket = (ticket) => {
-  window.open(route('tenant.tickets.print', { ticket: ticket.id }), '_blank' , 'width=800,height=600');
+  window.open(route('tenant.tickets.print', { ticket: ticket.id }), '_blank', 'width=800,height=600');
 };
 
 defineExpose({ showNotification });

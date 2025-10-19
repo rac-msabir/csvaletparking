@@ -28,7 +28,7 @@
                     <div class="relative flex-grow">
                       <div class="absolute inset-y-0 left-0 flex items-center">
                         <label for="country" class="sr-only">Country</label>
-                        <div class="h-full py-0 pl-3 pr-2 border-r border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 sm:text-sm">
+                        <div class="h-12 py-0 pl-3 pr-2 border-r border-gray-300 bg-gray-50 flex items-center justify-center text-gray-500 sm:text-sm">
                           🇸🇦 +966
                         </div>
                       </div>
@@ -36,7 +36,7 @@
                         type="tel"
                         required
                         v-model="localPhoneNumber"
-                        class="focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md"
+                        class="h-12 focus:ring-blue-500 focus:border-blue-500 block w-full pl-20 sm:text-sm border-gray-300 rounded-md"
                         :class="{ 'border-red-500': form.errors.customer_phone || (localPhoneNumber && localPhoneNumber.length < 9) }"
                         placeholder="5XXXXXXXX"
                         pattern="[0-9]{9,10}"
@@ -65,7 +65,7 @@
                     type="text"
                     id="vehicle_make"
                     v-model="form.vehicle_make"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    class="h-12 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.vehicle_make }"
                   />
                   <p v-if="form.errors.vehicle_make" class="mt-1 text-sm text-red-600">
@@ -80,7 +80,7 @@
                     type="text"
                     id="vehicle_model"
                     v-model="form.vehicle_model"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    class="h-12 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.vehicle_model }"
                   />
                   <p v-if="form.errors.vehicle_model" class="mt-1 text-sm text-red-600">
@@ -96,7 +96,7 @@
                     type="text"
                     id="license_plate"
                     v-model="form.license_plate"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    class="h-12 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                     :class="{ 'border-red-500': form.errors.license_plate }"
                   />
                   <p v-if="form.errors.license_plate" class="mt-1 text-sm text-red-600">
@@ -118,7 +118,7 @@
                   id="special_instructions"
                   v-model="form.special_instructions"
                   rows="3"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  class="h-28 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   :class="{ 'border-red-500': form.errors.special_instructions }"
                 ></textarea>
                 <p v-if="form.errors.special_instructions" class="mt-1 text-sm text-red-600">

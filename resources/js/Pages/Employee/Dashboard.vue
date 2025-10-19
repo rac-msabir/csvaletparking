@@ -283,9 +283,12 @@
 </style>
 
 <script setup>
+
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue';
+
+const { proxy } = getCurrentInstance();
 
 const props = defineProps({
   stats: Object,
@@ -303,7 +306,7 @@ const chooseSite = (site) => {
   selectedSite.value = site.label;
   siteOpen.value = false;
   localStorage.setItem('uv:selectedSite', site.label);
-  // toast.success(`Switched to ${site.label}`);
+  proxy.$toast.success(`Switched to ${site.label}`);
   // Optionally trigger server-side switch with Inertia if route exists
   // router.post(route('employee.site.switch'), { site: site.value })
 };
@@ -349,9 +352,9 @@ const paginatedTickets = computed(() => {
   return filteredTickets.value.slice(start, start + perPage.value);
 });
 
-/* Sort button placeholder */
+
 const toggleSort = () => {
-  // toast.info('Sorting not changed — demo UI');
+  proxy.$toast.info('Sorting not changed — demo UI');
 };
 
 /* Pills */
@@ -413,7 +416,7 @@ const reportFromTime = ref('12:00PM');
 const reportToTime = ref('4:00AM');
 const applyReport = () => {
   dateModalOpen.value = false;
-  // toast.success('Report filters applied');
+  proxy.$toast.success('Report filters applied');
 };
 
 /* Status modal */
@@ -449,21 +452,33 @@ const submitStatus = async () => {
     }
     
     statusModalOpen.value = false;
-    // toast.success('Ticket status updated successfully!');
+    proxy.$toast.success('Ticket status updated successfully!');
   } catch (error) {
     console.error('Error updating ticket status:', error);
     const errorMessage = error.response?.data?.message || 'Failed to update ticket status. Please try again.';
-    // toast.error(errorMessage);
+    proxy.$toast.error(errorMessage);
   }
 };
 
 /* Notifications (kept from original) */
-const notifications = ref([]);
 const showNotification = (notification) => {
-  // toast.info(
-  //   `<div class=\"flex flex-col\"><span class=\"font-semibold\">${notification.title}</span><span class=\"text-sm\">${notification.message}</span>${notification.url ? `<a href=\"${notification.url}\" class=\"text-blue-500 hover:underline mt-1 text-xs\">View Details →</a>` : ''}</div>`,
-  //   { position: 'top-right', autoClose: 8000, hideProgressBar: false, closeOnClick: true, pauseOnHover: true, draggable: true, toastClassName: '!bg-white !text-gray-800 !shadow-lg', bodyClassName: 'p-0' }
-  // );
+  proxy.$toast.info(
+    `<div class="flex flex-col">
+      <span class="font-semibold">${notification.title}</span>
+      <span class="text-sm">${notification.message}</span>
+      ${notification.url ? `<a href="${notification.url}" class="text-blue-500 hover:underline mt-1 text-xs">View Details →</a>` : ''}
+    </div>`,
+    { 
+      position: 'top-right', 
+      autoClose: 8000, 
+      hideProgressBar: false, 
+      closeOnClick: true, 
+      pauseOnHover: true, 
+      draggable: true, 
+      toastClassName: '!bg-white !text-gray-800 !shadow-lg', 
+      bodyClassName: 'p-0' 
+    }
+  );
 };
 
 let echoInstance = null;
