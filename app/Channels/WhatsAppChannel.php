@@ -2,7 +2,6 @@
 
 namespace App\Channels;
 
-use Twilio\Rest\Client;
 use App\Models\WhatsAppMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Facades\Log;
@@ -45,49 +44,40 @@ class WhatsAppChannel
         // Format phone number
         $phoneNumber = $this->formatPhoneNumber($phoneNumber);
         
-        // Get Twilio credentials from config
-        $config = config('services.twilio');
+        // Get UltraMsg credentials from config
+        $config = config('services.ultramsg');
         
-        if (empty($config['sid']) || empty($config['token'])) {
-            Log::error('Twilio credentials not configured');
+        if (empty($config['instance_id']) || empty($config['token'])) {
+            Log::error('UltraMsg credentials not configured');
             return null;
         }
         
         try {
-            $twilio = new Client($config['sid'], $config['token']);
+            $response = $this->sendViaUltraMsg($phoneNumber, $message, $config);
             
-            // Send WhatsApp message using Twilio's API
-            $twilioMessage = $twilio->messages->create(
-                "whatsapp:{$phoneNumber}", // to
-                [
-                    'from' => $config['whatsapp_from'],
-                    'body' => $message
-                ]
-            );
+            $isSent = isset($response['sent']) && ($response['sent'] === 'true' || $response['sent'] === true);
             
-            Log::info('WhatsApp message sent successfully via Twilio', [
-                'message_sid' => $twilioMessage->sid,
-                'from' => $config['whatsapp_from'],
+            Log::info('WhatsApp message sent via UltraMsg', [
+                'response' => $response,
                 'to' => $phoneNumber,
-                'status' => $twilioMessage->status
+                'sent' => $isSent
             ]);
             
             // Log the message to the database
             $this->logWhatsAppMessage([
                 'phone_number' => $phoneNumber,
-                'message_sid' => $twilioMessage->sid,
-                'account_sid' => $config['sid'],
-                'status' => $twilioMessage->status,
+                'message_sid' => $response['id'] ?? null,
+                'status' => $isSent ? 'sent' : 'failed',
                 'content' => $message,
                 'notifiable' => $notifiable,
                 'notification' => $notification,
-                'twilio_response' => json_encode($twilioMessage->toArray())
+                'ultramsg_response' => json_encode($response)
             ]);
             
-            return $twilioMessage;
+            return $response;
             
         } catch (\Exception $e) {
-            Log::error('Twilio WhatsApp notification error: ' . $e->getMessage(), [
+            Log::error('UltraMsg WhatsApp notification error: ' . $e->getMessage(), [
                 'phone_number' => $phoneNumber,
                 'error' => [
                     'message' => $e->getMessage(),
@@ -96,6 +86,7 @@ class WhatsAppChannel
                     'trace' => $e->getTraceAsString()
                 ]
             ]);
+            
             // Log the failed attempt
             $this->logWhatsAppMessage([
                 'phone_number' => $phoneNumber,
@@ -104,19 +95,81 @@ class WhatsAppChannel
                 'notifiable' => $notifiable,
                 'notification' => $notification,
                 'error_message' => $e->getMessage(),
-                'twilio_response' => json_encode([
+                'ultramsg_response' => json_encode([
                     'error' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine()
                 ])
             ]);
             
-            throw $e; // Re-throw to let the notification system handle it
+            // Don't re-throw to prevent queue retries, just return the error
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
     }
     
     /**
-     * Format phone number for Twilio WhatsApp API
+     * Send message via UltraMsg API
+     *
+     * @param string $phoneNumber
+     * @param string $message
+     * @param array $config
+     * @return array
+     */
+    protected function sendViaUltraMsg(string $phoneNumber, string $message, array $config): array
+    {
+        $url = "https://api.ultramsg.com/{$config['instance_id']}/messages/chat";
+        
+        $payload = [
+            'token' => $config['token'],
+            'to' => $phoneNumber,
+            'body' => $message
+        ];
+        
+        $curl = curl_init();
+        
+        curl_setopt_array($curl, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_ENCODING => "",
+            CURLOPT_MAXREDIRS => 10,
+            CURLOPT_TIMEOUT => 30,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST => "POST",
+            CURLOPT_POSTFIELDS => json_encode($payload),
+            CURLOPT_HTTPHEADER => [
+                "content-type: application/json"
+            ],
+        ]);
+        
+        $response = curl_exec($curl);
+        $err = curl_error($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+        
+        if ($err) {
+            throw new \Exception("cURL Error: {$err}");
+        }
+        
+        $decodedResponse = json_decode($response, true);
+        
+        if (!$decodedResponse) {
+            throw new \Exception("Invalid JSON response from UltraMsg API: {$response}");
+        }
+        
+        if ($httpCode >= 400) {
+            throw new \Exception("UltraMsg API error: " . ($decodedResponse['message'] ?? $response));
+        }
+        
+        return $decodedResponse;
+    }
+    
+    /**
+     * Format phone number for UltraMsg API
      * 
      * @param string $phoneNumber
      * @return string
@@ -129,6 +182,11 @@ class WhatsAppChannel
         // If the number starts with '0', replace with country code (assuming +92 for Pakistan)
         if (strpos($phoneNumber, '0') === 0) {
             $phoneNumber = '92' . substr($phoneNumber, 1);
+        }
+        
+        // Ensure it starts with '+'
+        if (strpos($phoneNumber, '+') !== 0) {
+            $phoneNumber = '+' . $phoneNumber;
         }
         
         return $phoneNumber;
@@ -148,8 +206,8 @@ class WhatsAppChannel
             'message_type' => 'outbound',
             'status' => $data['status'] ?? 'pending',
             'message_sid' => $data['message_sid'] ?? null,
-            'account_sid' => $data['account_sid'] ?? null,
-            'twilio_response' => $data['twilio_response'] ?? null,
+            'account_sid' => null, // Not applicable for UltraMsg
+            'twilio_response' => $data['ultramsg_response'] ?? null,
             'error_message' => $data['error_message'] ?? null,
             'attempts' => 1,
             'sent_at' => now(),
@@ -183,7 +241,7 @@ class WhatsAppChannel
         
         // Ensure tenant_id is set, fallback to current tenant or default
         if (empty($messageData['tenant_id'])) {
-            $messageData['tenant_id'] = Auth::user()->tenant_id;
+            $messageData['tenant_id'] = Auth::user()->tenant_id ?? null;
         }
         
         return WhatsAppMessage::create($messageData);

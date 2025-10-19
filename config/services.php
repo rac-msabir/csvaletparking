@@ -44,4 +44,9 @@ return [
         'timeout' => 5, // Connection timeout in seconds
     ],
 
+    'ultramsg' => [
+        'instance_id' => env('ULTRAMSG_INSTANCE_ID', 'instance146799'),
+        'token' => env('ULTRAMSG_TOKEN', '3tooox40wmr9ejew'),
+    ],
+
 ];

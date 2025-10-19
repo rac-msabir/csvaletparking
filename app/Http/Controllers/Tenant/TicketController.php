@@ -53,12 +53,13 @@ class TicketController extends Controller
     {
         $user = Auth::user();
         $validated = $request->validated();
-        
+        // $validated['customer_phone'] = '923496127642';
+
         // If user is a tenant admin, use their user_id as tenant_id
         if ($user->is_tenant_admin) {
             $validated['tenant_id'] = $user->id;
         }
-        
+
         $ticket = Ticket::create($validated);
 
         if ($request->hasFile('images')) {
@@ -122,14 +123,17 @@ class TicketController extends Controller
                     'qr_code_path' => $qrCodePath
                 ]);
 
-                if ($ticket->customer_phone) {
-                    try {
-                        $ticket->notify(new WhatsAppTicketCreated($ticket));
-                    } catch (\Exception $e) {
-                        \Log::error('Failed to send WhatsApp notification: ' . $e->getMessage());
-                    }
-                }
-
+                
+            }
+        }
+        if ($validated['customer_phone']) {
+            try {
+                //set customer_phone to 923496127642 here for testing
+                // $validated['customer_phone'] = '923496127642';
+                // dd($validated['customer_phone']);
+                $ticket->notify(new WhatsAppTicketCreated($ticket));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send WhatsApp notification: ' . $e->getMessage());
             }
         }
         return Inertia::render('Tenant/Tickets/Create', [
@@ -171,7 +175,7 @@ class TicketController extends Controller
         // For Cloudflare R2, we'll construct the URL manually since the url() method might not work as expected
         $bucket = config('filesystems.disks.s3.bucket');
         $endpoint = rtrim(config('filesystems.disks.s3.endpoint'), '/');
-        
+
         // Return the full public URL
         return "{$endpoint}/{$bucket}/{$path}";
     }
