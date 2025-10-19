@@ -28,10 +28,9 @@ class WhatsAppTicketCreated extends Notification implements ShouldQueue
 
         return <<<MSG
 New ticket/تذكرة جديدة
-حياك الله مع مكتب مبيعات الدرعية - شركة التحفة اللامعة لصف السيارات
-تقدر تطلع على التفاصيل وتطلب سيارتك باستخدام الرابط
 
-Welcome to Sales center Diriyah - CS Valet Parking valet services
+حياك الله  في مركز مبيعات شركة الدرعية. بإمكانك الاطلاع على طلبك باستخدام الرابط أدناه.
+Welcome to Diriyah Sales Center.
 You may checkout the details and request your car via this link
 
 رقم التذكرة (Ticket No)

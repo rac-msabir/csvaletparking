@@ -23,16 +23,18 @@ class CarDeliveredNotification extends Notification implements ShouldQueue
         return ['whatsapp'];
     }
 
-public function toWhatsApp($notifiable)
-{
-    return <<<MSG
+    public function toWhatsApp($notifiable)
+    {
+        return <<<MSG
 تم تسليم سيارتك
-شكرا لزيارتك مكتب مبيعات الدرعية واستخدامك خدمة شركة التحفة اللامعة لصف السيارات ، رافقتك السلامة
+شكرا لزيارتكم مركز مبيعات الدرعية،
++966 56 520 6244للاقتراحات والشكاوى على خدمة صف السيارات يرجى الاتصال على الرقم 
+رافقتكم السلامة
 
-Your car has been delivered 
-Thanks for visiting Sales center Diriyah and using CS Valet Parking, we wish you a safe journey
-For more information
-Cell, 966591359399
+Your car has been delivered.
+Thank you for visiting Diriyah Sales Center.
+For suggestions and complaints about the valet services please contact +966 59 940 9500
+We wish you a safe journey.
 MSG;
-}
+    }
 }
