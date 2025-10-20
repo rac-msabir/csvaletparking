@@ -200,9 +200,9 @@
                     <p class="text-sm text-gray-500">
                       Ticket #{{ ticketNumber }}
                     </p>
-                    <div class="mt-4 flex justify-center" ref="qrCodeElement">
+                    <!-- <div class="mt-4 flex justify-center" ref="qrCodeElement">
                       <canvas ref="qrCanvas" class="border border-gray-200 p-2 rounded"></canvas>
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               </div>
@@ -219,9 +219,9 @@
                   class="inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm"
                   @click="downloadQRCode"
                 >
-                  Download QR
+                  Download Ticket
                 </button>
-                <button
+                <!-- <button
                   type="button"
                   class="col-span-2 inline-flex justify-center w-full rounded-md border border-green-600 shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm"
                   @click="printViaThermal"
@@ -235,7 +235,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                   </svg>
                   {{ isPrinting ? 'Printing...' : 'Print via Thermal Printer' }}
-                </button>
+                </button> -->
                 <Link 
                   :href="route('tenant.dashboard')"
                   class="col-span-2 mt-3 inline-flex justify-center w-full rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:text-sm text-center"
@@ -254,7 +254,7 @@
 
 <!-- Update the script section (around line 270) -->
 <script setup>
-import { useForm, Link } from '@inertiajs/vue3';
+import { useForm, Link, router } from '@inertiajs/vue3';
 import { ref, onMounted, nextTick, getCurrentInstance } from 'vue';
 import { Dialog, DialogOverlay, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import QRCode from 'qrcode';
@@ -305,10 +305,14 @@ const handlePhoneInput = () => {
 };
 const isPrinting = ref(false);
 
-// Reset QR code data when modal is closed
+// Reset QR code data and redirect to dashboard when modal is closed
 const closeQRModal = () => {
   showQRModal.value = false;
   qrCodeUrl.value = '';
+  // Redirect to dashboard after a short delay to allow the modal to close smoothly
+  setTimeout(() => {
+    router.get(route('tenant.dashboard'));
+  }, 200);
 };
 
 // Print via thermal printer
@@ -553,7 +557,7 @@ const printQRCode = () => {
       <div class="ticket">
         <h2>Valet Parking Ticket</h2>
         <p>Ticket #${ticketNumber.value}</p>
-        <img src="${qrCodeUrl.value}" alt="QR Code" style="width: 200px; height: 200px;">
+        
         <p>${new Date().toLocaleString()}</p>
         <p>Please keep this ticket safe</p>
       </div>
@@ -575,12 +579,49 @@ const printQRCode = () => {
 };
 
 const downloadQRCode = () => {
+  const printContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Ticket #${ticketNumber.value}</title>
+      <style>
+        body { 
+          font-family: Arial, sans-serif; 
+          text-align: center;
+          padding: 20px;
+        }
+        .ticket { 
+          display: inline-block;
+          padding: 20px;
+          border: 1px solid #000;
+          border-radius: 5px;
+          text-align: center;
+        }
+        .ticket h2 { margin: 0 0 10px 0; }
+        .ticket p { margin: 5px 0; }
+      </style>
+    </head>
+    <body>
+      <div class="ticket">
+        <h2>Valet Parking Ticket</h2>
+        <p>Ticket #${ticketNumber.value}</p>
+        <p>${new Date().toLocaleString()}</p>
+        <p>Please keep this ticket safe</p>
+      </div>
+    </body>
+    </html>
+  `;
+  
+  const blob = new Blob([printContent], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  
   const link = document.createElement('a');
-  link.download = `ticket-${ticketNumber.value}.png`;
-  link.href = qrCodeUrl.value;
+  link.href = url;
+  link.download = `ticket-${ticketNumber.value}.`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 // Format phone number to ensure it's in the correct format

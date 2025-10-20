@@ -21,18 +21,18 @@ class TicketController extends Controller
         ]);
 
         // Dispatch the VehicleRequested event
-        \App\Events\VehicleRequested::dispatch($ticket);
+        // \App\Events\VehicleRequested::dispatch($ticket);
 
-        // Notify the employee who created the ticket
-        if ($ticket->creator) {
-            $ticket->creator->notify(new \App\Notifications\VehicleRequestedNotification($ticket));
-        }
+        // // Notify the employee who created the ticket
+        // if ($ticket->creator) {
+        //     $ticket->creator->notify(new \App\Notifications\VehicleRequestedNotification($ticket));
+        // }
 
-        // Log the activity
-        activity()
-            ->performedOn($ticket)
-            ->causedBy(auth()->user() ?? $ticket->creator)
-            ->log('Vehicle requested for ticket #' . $ticket->id);
+        // // Log the activity
+        // activity()
+        //     ->performedOn($ticket)
+        //     ->causedBy(auth()->user() ?? $ticket->creator)
+        //     ->log('Vehicle requested for ticket #' . $ticket->id);
 
         return response()->json([
             'message' => 'Vehicle request received. Your car is being prepared.',

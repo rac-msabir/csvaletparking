@@ -169,17 +169,18 @@ class Ticket extends Model
     }
 
     /**
-     * Generate a unique ticket number.
+     * Generate a ticket number with address and ID.
      *
+     * @param  \App\Models\Tenant|null  $tenant
+     * @param  int  $ticketId
      * @return string
      */
-    public static function generateTicketNumber()
+    public static function generateTicketNumber($ticketId = null)
     {
-        $prefix = 'TKT';
-        $date = now()->format('Ymd');
-        $random = strtoupper(Str::random(6));
+        $address = auth()->check() ? (auth()->user()->address ?? 'Sales Center Diriyah') : 'Sales Center Diriyah';
+        $ticketId = $ticketId ?: (static::max('id') + 1);
         
-        return "{$prefix}-{$date}-{$random}";
+        return $address . ' - ' . str_pad($ticketId, 6, '0', STR_PAD_LEFT);
     }
 
     /**

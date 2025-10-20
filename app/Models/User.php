@@ -149,7 +149,7 @@ class User extends Authenticatable
      */
     public function tenant()
     {
-        return $this->belongsTo(Tenant::class);
+        return $this->belongsTo(User::class);
     }
 
     /**

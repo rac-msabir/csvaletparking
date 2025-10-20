@@ -54,7 +54,7 @@ class DashboardController extends Controller
             ->latest()
             ->get()
             ->map(function (Ticket $ticket) {
-                $reference = $ticket->ticket_number ?: ('TKT-' . str_pad($ticket->id, 4, '0', STR_PAD_LEFT));
+                $reference = $ticket->ticket_number ?: ($ticket->tenant ? $ticket->tenant->address . ' - ' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT) : 'TKT-' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT));
                 $totalPrice = $ticket->amount ? number_format((float) $ticket->amount, 2) : null;
 
                 return [

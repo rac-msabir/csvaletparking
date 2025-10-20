@@ -113,8 +113,9 @@ class TicketController extends Controller
 
                 // Rest of your code (QR code generation, etc.)
                 if (empty($ticket->ticket_number)) {
+                    $tenantAddress = auth()->user()->address ?? 'Sales Center Diriyah';
                     $ticket->update([
-                        'ticket_number' => 'TKT-' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT)
+                        'ticket_number' => $tenantAddress . ' - ' . str_pad($ticket->id, 6, '0', STR_PAD_LEFT)
                     ]);
                 }
 
