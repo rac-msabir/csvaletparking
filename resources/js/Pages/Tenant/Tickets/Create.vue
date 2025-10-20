@@ -520,7 +520,7 @@ const generateQRCode = async (ticket) => {
     if (qrCanvas.value) {
       await QRCode.toCanvas(qrCanvas.value, qrData, {
         errorCorrectionLevel: 'H',
-        width: 200,
+        width: 250,
         margin: 1
       });
     }
@@ -535,7 +535,7 @@ const printQRCode = () => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Print Ticket #${ticketNumber.value}</title>
+      <title>Print Ticket: ${ticketNumber.value}</title>
       <style>
         @media print {
           @page { margin: 0; }
@@ -555,9 +555,9 @@ const printQRCode = () => {
     </head>
     <body>
       <div class="ticket">
-        <h2>Valet Parking Ticket</h2>
-        <p>Ticket #${ticketNumber.value}</p>
-        
+        <h2>CS VALET PARKING</h2>
+        <h3>SALES CENTER DARIYYAH</h3>
+        <h2>Ticket: ${ticketNumber.value}</h2>
         <p>${new Date().toLocaleString()}</p>
         <p>Please keep this ticket safe</p>
       </div>
@@ -583,7 +583,7 @@ const downloadQRCode = () => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Ticket #${ticketNumber.value}</title>
+      <title>Ticket: ${ticketNumber.value}</title>
       <style>
         body { 
           font-family: Arial, sans-serif; 
@@ -603,9 +603,11 @@ const downloadQRCode = () => {
     </head>
     <body>
       <div class="ticket">
-        <h2>Valet Parking Ticket</h2>
-        <p>Ticket #${ticketNumber.value}</p>
+        <h2>CS VALET PARKING</h2>
+        <h3>SALES CENTER DARIYYAH</h3>
+        <h2>Ticket: ${ticketNumber.value}</h2>
         <p>${new Date().toLocaleString()}</p>
+
         <p>Please keep this ticket safe</p>
       </div>
     </body>

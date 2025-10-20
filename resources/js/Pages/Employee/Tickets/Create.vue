@@ -425,7 +425,7 @@ const printQRCode = () => {
     </head>
     <body>
       <div class="ticket">
-        <h2>Valet Parking Ticket</h2>
+        <h2>CS VALET PARKING</h2>
         <p>Ticket #${ticketNumber.value}</p>
         <img src="${qrCodeUrl.value}" alt="QR Code" style="width: 200px; height: 200px;">
         <p>${new Date().toLocaleString()}</p>

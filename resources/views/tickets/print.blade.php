@@ -74,7 +74,7 @@
 
     <div class="ticket">
         <div class="header">
-            <h1 class="text-lg font-bold">Valet Parking Ticket</h1>
+            <h1 class="text-lg font-bold">CS VALET PARKING</h1>
             <p class="text-sm">{{ config('app.name') }}</p>
         </div>
 

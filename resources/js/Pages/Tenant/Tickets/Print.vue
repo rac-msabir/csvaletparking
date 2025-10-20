@@ -17,7 +17,7 @@
 
     <div class="ticket max-w-[80mm] mx-auto font-sans p-4 print:p-2">
       <div class="header text-center mb-4 pb-2 border-b border-dashed border-gray-700">
-        <h1 class="text-lg font-bold">Valet Parking Ticket</h1>
+        <h1 class="text-lg font-bold">CS VALET PARKING</h1>
         <p class="text-sm">{{ appName }}</p>
       </div>
 
