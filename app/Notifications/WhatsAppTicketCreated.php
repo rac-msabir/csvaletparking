@@ -36,6 +36,7 @@ You may checkout the details and request your car via this link
 رقم التذكرة (Ticket No)
 {$this->ticket->ticket_number}
 {$createdAt}
+
 {$this->ticket->public_url}
 MSG;
     }
