@@ -5,49 +5,52 @@
  */
 
 import axios from 'axios';
-window.axios = axios;
+import Pusher from 'pusher-js';
+import Echo from 'laravel-echo';
 
+// Configure axios
+window.axios = axios;
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
-/**
- * Echo exposes an expressive API for subscribing to channels and listening
- * for events that are broadcast by Laravel. Echo and event broadcasting
- * allows your team to easily build robust real-time web applications.
- */
-
-import { configureEcho } from "@laravel/echo-vue";
-
+// Get CSRF token for auth headers
 const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
-const user = window.authUser || {};
 
-const scheme = (import.meta.env.VITE_REVERB_SCHEME || 'http').toLowerCase();
-const host = import.meta.env.VITE_REVERB_HOST || (window.location.hostname || '127.0.0.1');
-const port = Number(import.meta.env.VITE_REVERB_PORT || (scheme === 'https' ? 443 : 8080));
-const appKey = import.meta.env.VITE_REVERB_APP_KEY || '';
+// Configure Pusher
+window.Pusher = Pusher;
 
-try {
-    console.debug('[Bootstrap] Configuring Echo', { scheme, host, port, hasKey: !!appKey });
-    const echo = configureEcho({
-        broadcaster: 'reverb',
-        key: import.meta.env.VITE_REVERB_APP_KEY,
-        wsHost: import.meta.env.VITE_REVERB_HOST,
-        wsPort: import.meta.env.VITE_REVERB_PORT || 80,
-        wssPort: import.meta.env.VITE_REVERB_PORT || 443,
-        forceTLS: false,
-        enabledTransports: ['ws', 'wss'],
-        authEndpoint: '/broadcasting/auth',
-        auth: {
-            headers: {
-                'X-CSRF-TOKEN': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json',
+// Initialize Pusher with error handling
+const initPusher = () => {
+    try {
+        // Initialize Echo with Pusher
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: import.meta.env.VITE_PUSHER_APP_KEY,
+            cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'mt1',
+            wsHost: `ws-${import.meta.env.VITE_PUSHER_APP_CLUSTER}.pusher.com`,
+            wsPort: 80,
+            wssPort: 443,
+            forceTLS: true,
+            encrypted: true,
+            disableStats: true,
+            enabledTransports: ['wss', 'ws'],
+            auth: {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
             },
-        },
-    });
+            authEndpoint: '/broadcasting/auth',
+        });
 
-    window.Echo = echo;
-    console.debug('[Bootstrap] Echo initialized');
-} catch (e) {
-    console.error('[Bootstrap] Echo initialization failed', e);
-    window.Echo = null;
-}
+        console.log('[Bootstrap] Pusher configured with key:', import.meta.env.VITE_PUSHER_APP_KEY);
+        return true;
+    } catch (error) {
+        console.error('[Bootstrap] Error initializing Pusher:', error);
+        window.Echo = null;
+        return false;
+    }
+};
+
+// Initialize Pusher when the app starts
+initPusher();

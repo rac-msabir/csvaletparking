@@ -481,34 +481,110 @@ const showNotification = (notification) => {
   );
 };
 
+// Echo/Pusher Integration
 let echoInstance = null;
-let channel = null;
+let userChannel = null;
+let orgAdminChannel = null;
+
+const setupEchoChannels = () => {
+  console.log('[Employee Dashboard] Setting up Echo channels...');
+  
+  if (!window.Echo) {
+    console.error('Echo is not available');
+    return false;
+  }
+
+  const userId = props.auth?.user?.id;
+  const organizationId = props.auth?.user?.tenant_id; // Using tenant_id as organization_id
+
+  if (!userId) {
+    console.error('User ID not available');
+    return false;
+  }
+
+  try {
+    // Subscribe to private user channel
+    userChannel = window.Echo.private(`user.${userId}`);
+    
+    userChannel
+      .subscribed(() => {
+        console.log('Successfully subscribed to user.' + userId);
+      })
+      .listen('.car.requested', (data) => {
+        console.log('Received .car.requested event:', data);
+        showNotification({
+          title: 'Vehicle Requested',
+          message: data.message || 'A vehicle has been requested',
+          url: data.ticket_id ? `/tickets/${data.ticket_id}` : null,
+          ticketId: data.ticket_id
+        });
+      })
+      .error((error) => {
+        console.error('Error on user channel:', error);
+      });
+
+    console.log('Subscribed to user channel');
+  } catch (error) {
+    console.error('Error setting up user channel:', error);
+    return false;
+  }
+
+  // Subscribe to organization admin channel if organizationId exists
+  if (organizationId) {
+    try {
+      orgAdminChannel = window.Echo.private(`organization.${organizationId}.admin`);
+      
+      orgAdminChannel
+        .subscribed(() => {
+          console.log('Successfully subscribed to organization admin channel for org:', organizationId);
+        })
+        .listen('.car.requested', (data) => {
+          console.log('Received .car.requested on organization admin channel:', data);
+          showNotification({
+            title: 'New Vehicle Request',
+            message: data.message || 'A vehicle has been requested in your organization',
+            url: data.ticket_id ? `/tickets/${data.ticket_id}` : null,
+            ticketId: data.ticket_id
+          });
+        })
+        .error((error) => {
+          console.error('Error on organization admin channel:', error);
+        });
+
+      console.log('Subscribed to organization admin channel');
+    } catch (error) {
+      console.error('Error setting up organization admin channel:', error);
+    }
+  }
+
+  return true;
+};
 
 onMounted(() => {
+  // Initialize Echo with retry logic
   const initEcho = (attempt = 0) => {
-    echoInstance = window.Echo;
-    if (!echoInstance) {
-      if (attempt < 10) setTimeout(() => initEcho(attempt + 1), 200);
-      else console.warn('Echo is not initialized after retries; skipping realtime setup.');
-      return;
-    }
-    if (!props.auth?.user?.id) return;
-    channel = echoInstance.private(`user.${props.auth.user.id}`);
-    if (channel && typeof channel.subscribed === 'function') channel.subscribed(() => { console.debug('Echo: subscribed to', `user.${props.auth.user.id}`); });
-    channel.listen('.vehicle.requested', (data) => { showNotification({ title: 'Vehicle Requested', message: data.message, url: data.url, ticketId: data.ticket_id }); });
-    if (props.auth?.user?.tenant_id) {
-      const tenantChannel = echoInstance.private(`tenant.${props.auth.user.tenant_id}`);
-      if (tenantChannel && typeof tenantChannel.subscribed === 'function') tenantChannel.subscribed(() => { console.debug('Echo: subscribed to', `tenant.${props.auth.user.tenant_id}`); });
-      tenantChannel.listen('.vehicle.requested', (data) => { showNotification({ title: 'Vehicle Requested', message: data.message, url: data.url, ticketId: data.ticket_id }); });
+    if (window.Echo) {
+      setupEchoChannels();
+    } else if (attempt < 10) {
+      console.log(`Echo not initialized yet, retrying... (${attempt + 1}/10)`);
+      setTimeout(() => initEcho(attempt + 1), 500);
+    } else {
+      console.error('Failed to initialize Echo after multiple attempts');
     }
   };
+  
   initEcho();
 });
 
 onUnmounted(() => {
-  if (channel) {
-    channel.stopListening('.vehicle.requested');
-    if (echoInstance) echoInstance.leave(`user.${props.auth.user?.id}`);
+  // Clean up Echo channels
+  if (userChannel) {
+    window.Echo.leave(`user.${props.auth?.user?.id}`);
+    userChannel = null;
+  }
+  if (orgAdminChannel) {
+    window.Echo.leave(`organization.${props.auth?.user?.tenant_id}.admin`);
+    orgAdminChannel = null;
   }
 });
 

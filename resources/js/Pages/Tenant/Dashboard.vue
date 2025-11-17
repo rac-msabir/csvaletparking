@@ -297,6 +297,7 @@
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue';
+import Pusher from 'pusher-js';
 
 const { proxy } = getCurrentInstance();
 
@@ -497,116 +498,86 @@ const showNotification = (notification) => {
   );
 };
 
-/* Echo/Reverb Integration */
-let userChannel = null;
-let tenantChannel = null;
-let echoInitialized = false;
+// Pusher implementation
+const pusher = ref(null);
+const userChannel = ref(null);
+const orgChannel = ref(null);
 
-const setupEchoChannels = () => {
-  console.log('Setting up Echo channels...');
-  
-  if (!window.Echo) {
-    console.error('Echo is not available');
-    return false;
+const setupPusher = () => {
+  if (!import.meta.env.VITE_PUSHER_APP_KEY) {
+    console.error('Pusher app key not found. Realtime features disabled.');
+    return;
   }
-
-  const userId = props.auth?.user?.id;
-  const tenantId = props.auth?.user?.tenant_id;
-
-  if (!userId) {
-    console.error('User ID not available');
-    return false;
-  }
-
-  console.log('Initializing Echo with user:', userId, 'tenant:', tenantId);
 
   try {
-    // Subscribe to private user channel
-    userChannel = window.Echo.private(`user.${userId}`);
-    
-    userChannel
-      .subscribed(() => {
-        console.log('Successfully subscribed to user.' + userId);
-      })
-      .listen('.vehicle.requested', (data) => {
-        console.log('Received .vehicle.requested event:', data);
-        showNotification({
-          title: data.title || 'Vehicle Requested',
-          message: data.message || 'A vehicle has been requested',
-          url: data.url,
-          ticketId: data.ticket_id
-        });
-      })
-      .error((error) => {
-        console.error('Error on user channel:', error);
-      });
+    // Initialize Pusher
+    pusher.value = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
+      cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'mt1',
+      forceTLS: true,
+      encrypted: true
+    });
 
-    console.log('Subscribed to user channel');
-  } catch (error) {
-    console.error('Error setting up user channel:', error);
-    return false;
-  }
-
-  // Subscribe to private tenant channel if tenantId exists
-  if (tenantId) {
-    try {
-      tenantChannel = window.Echo.private(`tenant.${tenantId}`);
+    // Subscribe to user's private channel
+    if (props.auth?.user?.id) {
+      userChannel.value = pusher.value.subscribe(`private-user.${props.auth.user.id}`);
       
-      tenantChannel
-        .subscribed(() => {
-          console.log('Successfully subscribed to tenant.' + tenantId);
-        })
-        .listen('.vehicle.requested', (data) => {
-          console.log('Received .vehicle.requested on tenant channel:', data);
-          showNotification({
-            title: data.title || 'Vehicle Requested',
-            message: data.message || 'A vehicle has been requested in your tenant',
-            url: data.url,
-            ticketId: data.ticket_id
-          });
-        })
-        .error((error) => {
-          console.error('Error on tenant channel:', error);
+      userChannel.value.bind('car.requested', (data) => {
+        console.log('Car requested:', data);
+        showNotification({
+          title: 'New Vehicle Request',
+          message: `Vehicle requested for ${data.ticket?.plate_number || 'a customer'}`,
+          type: 'info',
+          action: data.ticket?.id ? {
+            text: 'View',
+            onClick: () => {
+              window.location.href = route('tenant.tickets.show', data.ticket.id);
+            }
+          } : null
         });
-
-      console.log('Subscribed to tenant channel');
-    } catch (error) {
-      console.error('Error setting up tenant channel:', error);
+      });
     }
-  }
 
-  echoInitialized = true;
-  return true;
+    // Subscribe to organization channel
+    if (props.auth?.user?.tenant_id) {
+      orgChannel.value = pusher.value.subscribe(`private-organization.${props.auth.user.tenant_id}`);
+      
+      orgChannel.value.bind('ticket.updated', (data) => {
+        console.log('Ticket updated:', data);
+        if (data.ticket?.id) {
+          showNotification({
+            title: 'Ticket Updated',
+            message: `Ticket #${data.ticket.id} has been updated`,
+            type: 'info',
+            action: {
+              text: 'View',
+              onClick: () => {
+                window.location.href = route('tenant.tickets.show', data.ticket.id);
+              }
+            }
+          });
+        }
+      });
+    }
+  } catch (error) {
+    console.error('Error initializing Pusher:', error);
+  }
 };
 
+// Initialize Pusher when component mounts
 onMounted(() => {
-  console.log('Dashboard mounted');
-  
-  if (window.Echo) {
-    setupEchoChannels();
-  } else {
-    console.log('Waiting for Echo to load...');
-    let attempts = 0;
-    const maxAttempts = 20;
-    
-    const waitForEcho = setInterval(() => {
-      attempts++;
-      if (window.Echo) {
-        console.log('Echo loaded, setting up channels');
-        setupEchoChannels();
-        clearInterval(waitForEcho);
-      } else if (attempts >= maxAttempts) {
-        console.error('Echo failed to load');
-        clearInterval(waitForEcho);
-      }
-    }, 3000);
-  }
+  setupPusher();
 });
 
+// Clean up on component unmount
 onUnmounted(() => {
-  console.log('Dashboard unmounted, cleaning up Echo');
-  if (window.Echo && echoInitialized) {
-    window.Echo.leaveAllChannels();
+  if (pusher.value) {
+    if (userChannel.value) {
+      pusher.value.unsubscribe(`private-user.${props.auth?.user?.id}`);
+    }
+    if (orgChannel.value) {
+      pusher.value.unsubscribe(`private-organization.${props.auth?.user?.tenant_id}`);
+    }
+    pusher.value.disconnect();
   }
 });
 

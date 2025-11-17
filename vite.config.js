@@ -5,7 +5,7 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
     plugins: [
         laravel({
-            input: 'resources/js/app.js',
+            input: ['resources/js/app.js', 'resources/js/bootstrap.js'],
             refresh: true,
         }),
         vue({
@@ -18,9 +18,9 @@ export default defineConfig({
         }),
     ],
     environmentVariables: {
-        VITE_REVERB_APP_KEY: process.env.REVERB_APP_KEY,
-        VITE_REVERB_HOST: process.env.REVERB_HOST,
-        VITE_REVERB_PORT: process.env.REVERB_PORT,
-        VITE_REVERB_SCHEME: process.env.REVERB_SCHEME,
+        VITE_PUSHER_APP_KEY: process.env.PUSHER_APP_KEY,
+        VITE_PUSHER_HOST: process.env.PUSHER_HOST,
+        VITE_PUSHER_PORT: process.env.PUSHER_PORT,
+        VITE_PUSHER_SCHEME: process.env.PUSHER_SCHEME,
     },
 });

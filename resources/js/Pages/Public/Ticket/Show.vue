@@ -310,61 +310,85 @@ const formatDateTime = (dateTime) => {
   return new Date(dateTime).toLocaleString(localeCode, options);
 };
 
-// Initialize Echo for real-time updates (use the global Echo instance)
+// Echo/Pusher Integration
 let echo = null;
+let channel = null;
 
 // Listen for ticket status updates
 const setupEchoListeners = () => {
-  if (!ticket.value?.id) return null;
-  if (!echo) return null;
+  if (!ticket.value?.id) {
+    console.error('Ticket ID not available for Echo setup');
+    return null;
+  }
   
-  // Subscribe to the Laravel private channel for this ticket
-  const channel = echo.private(`ticket.${ticket.value.id}`);
+  if (!echo) {
+    console.error('Echo is not initialized');
+    return null;
+  }
   
-  // Listen for the TicketStatusUpdated event
-  channel.listen('TicketStatusUpdated', (e) => {
-    console.log('Ticket status updated:', e);
-    // Update the ticket status when we receive an update
-    if (e.ticket?.id === ticket.value.id) {
-      ticket.value.status = e.ticket.status;
-      
-      // If the ticket is ready, show a notification
-      if (e.ticket.status === 'ready') {
-        alert('Your vehicle is ready for pickup!');
-      }
-    }
-  });
-  
-  return channel;
+  try {
+    // Subscribe to the private channel for this ticket
+    const ticketChannel = echo.private(`ticket.${ticket.value.id}`);
+    
+    ticketChannel
+      .subscribed(() => {
+        console.log(`Successfully subscribed to ticket.${ticket.value.id}`);
+      })
+      .listen('.ticket.updated', (data) => {
+        console.log('Ticket updated event received:', data);
+        // Update the ticket status when we receive an update
+        if (data.ticket?.id === ticket.value.id) {
+          Object.assign(ticket.value, data.ticket);
+          
+          // If the ticket is ready, show a notification
+          if (data.ticket.status === 'ready') {
+            alert('Your vehicle is ready for pickup!');
+          }
+        }
+      })
+      .error((error) => {
+        console.error('Error on ticket channel:', error);
+      });
+    
+    return ticketChannel;
+  } catch (error) {
+    console.error('Error setting up Echo listeners:', error);
+    return null;
+  }
 };
 
 // Clean up Echo listeners
-let channel = null;
-
 onUnmounted(() => {
   if (channel) {
-    channel.stopListening('TicketStatusUpdated');
-    if (echo) {
-      echo.leave(`ticket.${ticket.value?.id}`);
+    try {
+      window.Echo.leave(`ticket.${ticket.value?.id}`);
+    } catch (error) {
+      console.error('Error leaving Echo channel:', error);
     }
+    channel = null;
   }
+  echo = null;
 });
 
-// Initialize the map when the component is mounted
+// Initialize Echo when the component is mounted
 onMounted(() => {
   const initEcho = (attempt = 0) => {
-    echo = window.Echo;
-    if (!echo) {
-      if (attempt < 10) {
-        setTimeout(() => initEcho(attempt + 1), 200);
-      } else {
-        console.warn('Echo is not initialized after retries; skipping realtime setup.');
+    if (window.Echo) {
+      echo = window.Echo;
+      console.log('Echo initialized, setting up listeners...');
+      channel = setupEchoListeners();
+      if (!channel) {
+        console.warn('Failed to set up Echo listeners');
       }
-      return;
+    } else if (attempt < 15) { // Increased max attempts to 15
+      console.log(`Echo not initialized yet, retrying... (${attempt + 1}/15)`);
+      setTimeout(() => initEcho(attempt + 1), 500); // Increased delay to 500ms
+    } else {
+      console.error('Failed to initialize Echo after multiple attempts');
     }
-    channel = setupEchoListeners();
   };
 
+  // Start initialization
   initEcho();
   
   if (hasLocation.value) {

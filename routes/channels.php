@@ -26,8 +26,18 @@ Broadcast::channel('ticket.{ticketId}', function (User $user, $ticketId) {
     return $user->id === $ticket->created_by || $user->hasRole('admin');
 });
 
-// User notifications channel
+// User private channel for Pusher
 Broadcast::channel('user.{userId}', function (User $user, $userId) {
+    return (int) $user->id === (int) $userId;
+});
+
+// Organization private channel
+Broadcast::channel('organization.{organizationId}', function (User $user, $organizationId) {
+    return (int) $user->tenant_id === (int) $organizationId;
+});
+
+// User notifications channel
+Broadcast::channel('user-notifications.{userId}', function (User $user, $userId) {
     return (int) $user->id === (int) $userId;
 });
 
