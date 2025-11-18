@@ -123,7 +123,14 @@
                       </div>
                     </td>
                   </tr>
-                  <tr v-for="t in paginatedTickets" :key="t.id" class="odd:bg-white even:bg-gray-50">
+                  <tr 
+                    v-for="t in paginatedTickets" 
+                    :key="t.id" 
+                    :class="[
+                      'odd:bg-white even:bg-gray-50 transition ring-offset-2',
+                      highlightedTickets[t.id] ? 'ticket-highlight animate-pulse ring-2 ring-red-400' : ''
+                    ]"
+                  >
                     <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ t.reference }}</td>
                     <td class="px-6 py-4 whitespace-nowrap">
                       <button 
@@ -291,6 +298,9 @@
 
 <style scoped>
 /***** Keep custom styles minimal; rely on Tailwind *****/
+.ticket-highlight > td {
+  background-color: rgba(248, 113, 113, 0.12);
+}
 </style>
 
 <script setup>
@@ -513,6 +523,71 @@ const pusher = ref(null);
 const userChannel = ref(null);
 const orgChannel = ref(null);
 const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
+const highlightedTickets = ref({});
+const highlightTimers = new Map();
+const HIGHLIGHT_DURATION = 5000;
+
+const highlightTicket = (ticketId) => {
+  if (!ticketId) return;
+
+  if (highlightTimers.has(ticketId)) {
+    clearTimeout(highlightTimers.get(ticketId));
+  }
+
+  highlightedTickets.value = {
+    ...highlightedTickets.value,
+    [ticketId]: true
+  };
+
+  const timer = setTimeout(() => {
+    const { [ticketId]: _removed, ...rest } = highlightedTickets.value;
+    highlightedTickets.value = rest;
+    highlightTimers.delete(ticketId);
+  }, HIGHLIGHT_DURATION);
+
+  highlightTimers.set(ticketId, timer);
+};
+
+const playAlarm = () => {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+
+    const ctx = new AudioCtx();
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+
+    oscillator.type = 'sawtooth';
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+
+    gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + HIGHLIGHT_DURATION / 1000);
+
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + HIGHLIGHT_DURATION / 1000);
+  } catch (error) {
+    console.error('Alarm sound failed:', error);
+  }
+};
+
+const updateTicketFromEvent = (payload) => {
+  if (!payload?.ticket_id) return;
+
+  const index = props.recentTickets.findIndex((t) => t.id === payload.ticket_id);
+  if (index !== -1) {
+    props.recentTickets[index] = {
+      ...props.recentTickets[index],
+      status: payload.status ?? props.recentTickets[index].status,
+    };
+  }
+
+  highlightTicket(payload.ticket_id);
+  playAlarm();
+};
 
 const setupPusher = () => {
   if (!import.meta.env.VITE_PUSHER_APP_KEY) {
@@ -549,6 +624,7 @@ const setupPusher = () => {
       
       userChannel.value.bind('vehicle.requested', (data) => {
         console.log('Car requested:', data);
+        updateTicketFromEvent(data);
         showNotification({
           title: 'New Vehicle Request',
           message: data.message,
@@ -583,6 +659,9 @@ onUnmounted(() => {
     if (orgChannel.value) {
       pusher.value.unsubscribe(`private-organization.${props.auth?.user?.tenant_id}`);
     }
+    highlightTimers.forEach((timer) => clearTimeout(timer));
+    highlightTimers.clear();
+    highlightedTickets.value = {};
     pusher.value.disconnect();
   }
 });
