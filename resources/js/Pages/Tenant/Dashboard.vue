@@ -483,26 +483,35 @@ const notifications = ref([]);
 
 const showNotification = (notification) => {
   console.log('Showing notification:', notification);
-  proxy.$toast.info(
-    `<div class="flex flex-col"><span class="font-semibold">${notification.title}</span><span class="text-sm">${notification.message}</span>${notification.url ? `<a href="${notification.url}" class="text-blue-500 hover:underline mt-1 text-xs">View Details →</a>` : ''}</div>`,
-    { 
-      position: 'top-right', 
-      autoClose: 8000, 
-      hideProgressBar: false, 
-      closeOnClick: true, 
-      pauseOnHover: true, 
-      draggable: true, 
-      toastClassName: '!bg-white !text-gray-800 !shadow-lg', 
-      bodyClassName: 'p-0' 
-    }
-  );
+
+  const title = notification.title ? `${notification.title}` : '';
+  const message = notification.message ? `${notification.message}` : '';
+  const linkHint = notification.url ? ' View Details →' : '';
+  const toastText = [title, message].filter(Boolean).join(' — ') + linkHint;
+
+  const toastOptions = { 
+    position: 'top-right', 
+    autoClose: 8000, 
+    hideProgressBar: false, 
+    closeOnClick: true, 
+    pauseOnHover: true, 
+    draggable: true, 
+    toastClassName: '!bg-white !text-gray-800 !shadow-lg',
+    bodyClassName: '!p-4 !text-sm whitespace-pre-line'
+  };
+
+  const navigate = notification.action?.onClick || (notification.url ? (() => { window.location.href = notification.url; }) : null);
+  if (navigate) {
+    toastOptions.onClick = navigate;
+  }
+
+  proxy.$toast.info(toastText.trim(), toastOptions);
 };
 
 // Pusher implementation
 const pusher = ref(null);
 const userChannel = ref(null);
 const orgChannel = ref(null);
-const newUserChannel = ref(null);
 const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
 
 const setupPusher = () => {
@@ -555,27 +564,6 @@ const setupPusher = () => {
       });
     }
 
-    // Subscribe to organization channel
-    if (props.auth?.user?.tenant_id) {
-      orgChannel.value = pusher.value.subscribe(`private-organization.${props.auth.user.tenant_id}`);
-      
-      orgChannel.value.bind('ticket.updated', (data) => {
-        console.log('Ticket updated:', data);
-        if (data.ticket?.id) {
-          showNotification({
-            title: 'Ticket Updated',
-            message: `Ticket #${data.ticket.id} has been updated`,
-            type: 'info',
-            action: {
-              text: 'View',
-              onClick: () => {
-                window.location.href = route('tenant.tickets.show', data.ticket.id);
-              }
-            }
-          });
-        }
-      });
-    }
   } catch (error) {
     console.error('Error initializing Pusher:', error);
   }
