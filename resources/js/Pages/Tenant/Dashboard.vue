@@ -128,7 +128,7 @@
                     :key="t.id" 
                     :class="[
                       'odd:bg-white even:bg-gray-50 transition ring-offset-2',
-                      highlightedTickets[t.id] ? 'ticket-highlight animate-pulse ring-2 ring-red-400' : ''
+                      highlightedTickets[t.id] ? 'ticket-highlight ring-2 ring-red-500' : ''
                     ]"
                   >
                     <td class="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">{{ t.reference }}</td>
@@ -298,8 +298,22 @@
 
 <style scoped>
 /***** Keep custom styles minimal; rely on Tailwind *****/
+.ticket-highlight {
+  animation: ticket-blink 0.35s linear infinite;
+}
+
 .ticket-highlight > td {
-  background-color: rgba(248, 113, 113, 0.12);
+  background-color: rgba(220, 38, 38, 0.9);
+  color: #fff;
+}
+
+@keyframes ticket-blink {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.4);
+  }
 }
 </style>
 
@@ -557,18 +571,38 @@ const playAlarm = () => {
     const oscillator = ctx.createOscillator();
     const gainNode = ctx.createGain();
 
-    oscillator.type = 'sawtooth';
-    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
-
-    gainNode.gain.setValueAtTime(0.001, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.05);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + HIGHLIGHT_DURATION / 1000);
-
+    oscillator.type = 'square';
     oscillator.connect(gainNode);
     gainNode.connect(ctx.destination);
 
+    const beepFrequencies = [960, 720];
+    let beepIndex = 0;
+    const intervalMs = 300;
+    const endTime = Date.now() + HIGHLIGHT_DURATION;
+
+    const scheduleBeep = (frequency) => {
+      const now = ctx.currentTime;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      gainNode.gain.cancelScheduledValues(now);
+      gainNode.gain.setValueAtTime(0.0001, now);
+      gainNode.gain.linearRampToValueAtTime(0.5, now + 0.015);
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+    };
+
     oscillator.start();
-    oscillator.stop(ctx.currentTime + HIGHLIGHT_DURATION / 1000);
+    scheduleBeep(beepFrequencies[beepIndex]);
+
+    const intervalId = setInterval(() => {
+      if (Date.now() >= endTime) {
+        clearInterval(intervalId);
+        oscillator.stop(ctx.currentTime + 0.05);
+        ctx.close();
+        return;
+      }
+
+      beepIndex = (beepIndex + 1) % beepFrequencies.length;
+      scheduleBeep(beepFrequencies[beepIndex]);
+    }, intervalMs);
   } catch (error) {
     console.error('Alarm sound failed:', error);
   }
