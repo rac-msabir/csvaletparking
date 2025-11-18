@@ -21,8 +21,8 @@ class TicketController extends Controller
         ]);
 
         // Dispatch the VehicleRequested event
-        // \App\Events\VehicleRequested::dispatch($ticket);
-        \App\Events\NotifyAdminAboutCarRequest::dispatch($ticket);
+        \App\Events\VehicleRequested::dispatch($ticket);
+        // \App\Events\NotifyAdminAboutCarRequest::dispatch($ticket);
 
         // // Notify the employee who created the ticket
         // if ($ticket->creator) {

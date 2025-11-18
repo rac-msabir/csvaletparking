@@ -502,6 +502,8 @@ const showNotification = (notification) => {
 const pusher = ref(null);
 const userChannel = ref(null);
 const orgChannel = ref(null);
+const newUserChannel = ref(null);
+const csrfToken = document.head.querySelector('meta[name="csrf-token"]')?.content || '';
 
 const setupPusher = () => {
   if (!import.meta.env.VITE_PUSHER_APP_KEY) {
@@ -510,29 +512,45 @@ const setupPusher = () => {
   }
 
   try {
-    // Initialize Pusher
+
+    Pusher.logToConsole = true;
+    
     pusher.value = new Pusher(import.meta.env.VITE_PUSHER_APP_KEY, {
       cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER || 'mt1',
       forceTLS: true,
-      encrypted: true
+      encrypted: true,
+      authEndpoint: '/broadcasting/auth',
+      auth: {
+        headers: {
+          'X-CSRF-TOKEN': csrfToken,
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      }
     });
+
+    console.log('Pusher initialized with key:', import.meta.env.VITE_PUSHER_APP_KEY);
 
     // Subscribe to user's private channel
     if (props.auth?.user?.id) {
+
+      console.log('Subscribing to private-user channel for user:', props.auth.user.id);
+      
       userChannel.value = pusher.value.subscribe(`private-user.${props.auth.user.id}`);
       
-      userChannel.value.bind('car.requested', (data) => {
+      userChannel.value.bind('vehicle.requested', (data) => {
         console.log('Car requested:', data);
         showNotification({
           title: 'New Vehicle Request',
-          message: `Vehicle requested for ${data.ticket?.plate_number || 'a customer'}`,
+          message: data.message,
           type: 'info',
-          action: data.ticket?.id ? {
+          action: data.ticket_id ? {
             text: 'View',
             onClick: () => {
-              window.location.href = route('tenant.tickets.show', data.ticket.id);
+              window.location.href = route('tenant.tickets.show', data.ticket_id);
             }
-          } : null
+          } : null,
+          ticketId: data.ticket_id
         });
       });
     }

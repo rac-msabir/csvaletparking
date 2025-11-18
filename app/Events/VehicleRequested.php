@@ -9,6 +9,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 
 class VehicleRequested implements ShouldBroadcastNow
 {
@@ -22,6 +23,7 @@ class VehicleRequested implements ShouldBroadcastNow
     public function __construct(Ticket $ticket)
     {
         $this->ticket = $ticket->load(['creator', 'tenant']);
+        Log::info('Vehicle requested event created for ticket: ' . $this->ticket->id);
     }
 
     /**
@@ -31,6 +33,7 @@ class VehicleRequested implements ShouldBroadcastNow
      */
     public function broadcastOn(): array
     {
+        Log::info('Broadcasting vehicle requested event for ticket: ' . $this->ticket->id);
         $channels = [
             new PrivateChannel('ticket.' . $this->ticket->id),
             new PrivateChannel('user.' . $this->ticket->created_by),
