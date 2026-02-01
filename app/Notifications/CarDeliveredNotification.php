@@ -26,12 +26,11 @@ class CarDeliveredNotification extends Notification implements ShouldQueue
     public function toWhatsApp($notifiable)
     {
         return <<<MSG
-تم تسليم سيارتك
 شكرا لزيارتكم مركز مبيعات الدرعية
+للاقتراحات والشكاوى على خدمة صف السيارات يرجى الاتصال على الرقم 0595988851
 رافقتكم السلامة
 
-Your car has been delivered.
-Thank you for visiting Diriyah Sales Center.
+Thank you for visiting Diriyah Sales Center. For suggestions and complaints about the valet services please contact 0595988851
 We wish you a safe journey.
 MSG;
     }
