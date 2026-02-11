@@ -26,16 +26,11 @@ class CarDeliveredNotification extends Notification implements ShouldQueue
     public function toWhatsApp($notifiable)
     {
         return <<<MSG
-شكراً لانضمامكم إلينا في الدرعية
+شكرا لزيارتكم مركز مبيعات الدرعية
+للاقتراحات والشكاوى على خدمة صف السيارات يرجى الاتصال على الرقم 0595988851 
+رافقتكم السلامة
 
-شكرًا لانضمامكم إلينا في هذا المساء.
-للاقتراحات أو الشكاوى بخصوص خدمة صف السيارات يرجى التواصل 0595988851
-رافقتكم السلامة.
-
-Thank you for joining us in Diriyah. 
-
-Thank you for joining us this evening.
-For valet service suggestions or complaints please contact: 0595988851
+Thank you for visiting Diriyah Sales Center. For suggestions and complaints about the valet services please contact 0549998278
 We wish you a safe journey.
 MSG;
     }
